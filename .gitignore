@@ -1,0 +1,15 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# DB・アップロード・ベクトルDB
+backend/recipes.db
+backend/uploads/
+backend/chroma_data/
+
+# Node.js
+node_modules/
+dist/
