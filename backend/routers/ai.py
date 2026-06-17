@@ -1,11 +1,13 @@
 """
 routers/ai.py — AI 関連エンドポイント
 
-Router はリクエスト受付と AIService への委譲のみ担当する。
+変更点（RAG対応）:
+  - POST /api/ai/search-assist : ライブラリ横断型RAG回答
 """
 from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from pydantic import BaseModel, Field
 from database import get_db
 from services.ai_service import get_ai_service
 from routers.schemas import (
@@ -16,6 +18,8 @@ from routers.schemas import (
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
+
+# ── 既存エンドポイント ─────────────────────────
 
 @router.post("/discover", response_model=DiscoverResponse)
 def ai_discover(body: DiscoverRequest):
@@ -60,3 +64,55 @@ def suggest_menu(body: AIRequest, db: Session = Depends(get_db)):
         f"※ OPENAI_API_KEY を設定するとAIが本格回答します。"
     )
     return AIResponse(answer=mock, is_mock=True)
+
+
+# ── 新規: RAG ライブラリ横断回答 ──────────────
+
+class SearchAssistRequest(BaseModel):
+    question: str = Field(..., min_length=1, max_length=500)
+
+
+class RetrievedRecipe(BaseModel):
+    """RAG で参照したレシピ（フロントエンドで「参照元」表示に使う）"""
+    recipe_id: int | None = None
+    title:     str
+    category:  str
+    score:     float  # コサイン距離（小さいほど類似度が高い）
+
+
+class SearchAssistResponse(BaseModel):
+    answer:     str
+    is_mock:    bool
+    references: list[RetrievedRecipe]  # 回答の根拠となったレシピ一覧
+
+
+@router.post("/search-assist", response_model=SearchAssistResponse)
+def ai_search_assist(body: SearchAssistRequest):
+    """
+    RAGを使ったライブラリ横断型AI回答。
+
+    ユーザーの質問に対して:
+      1. ChromaDB でライブラリ全体を意味検索
+      2. ヒットしたレシピをコンテキストとしてプロンプトに注入
+      3. LLM が「ユーザーのレシピ」を参照して回答
+
+    レスポンスに references を含めることで、フロントエンドが
+    「このレシピを参照して回答しました」と表示できる。
+    """
+    answer, is_mock, retrieved = get_ai_service().search_assist(body.question)
+
+    references = [
+        RetrievedRecipe(
+            recipe_id=r.get("recipe_id"),
+            title=r.get("title", ""),
+            category=r.get("category", ""),
+            score=r.get("score", 0.0),
+        )
+        for r in retrieved
+    ]
+
+    return SearchAssistResponse(
+        answer=answer,
+        is_mock=is_mock,
+        references=references,
+    )
