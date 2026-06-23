@@ -1,40 +1,75 @@
-/* global.css — MyRecipeBook v3.1 / Honey Gold テーマ */
+/* global.css — MyRecipeBook v4.1 / Cream & Sage テーマ */
 :root {
-  --gold:        #F5A623;
-  --gold-dark:   #D4870A;
-  --gold-light:  #FFF8E1;
-  --gold-border: rgba(255,255,255,.35);
+  /* ── Cream & Sage パレット ── */
+  --cream: #f4f1ec;
+  --ink: #1c1c1a;
 
-  --blue:       #185FA5;
-  --blue-dark:  #0f4070;
-  --blue-light: #eff6ff;
-  --blue-100:   #dbeafe;
+  --accent: #7a9a78;
+  /* セージグリーン：ロゴ・バッジ・お気に入り */
+  --accent-dark: #5f7e5c;
+  /* ボタン等の塗り面で十分なコントラストを確保するための濃色 */
+  --accent-light: #eef4ee;
+  --accent-100: #dde8db;
+  --accent-border: rgba(28, 28, 26, .12);
 
-  --text-1: #111827;
-  --text-2: #4b5563;
-  --text-3: #9ca3af;
+  /* 旧テーマ（Honey Gold / Blue）の変数名は、外部から参照されている
+     コンポーネント（RecipeCard, BottomNav 等）との互換性のために残し、
+     値だけを新パレットへ差し替えています。 */
+  --gold: var(--accent);
+  --gold-dark: var(--accent-dark);
+  --gold-light: var(--accent-light);
+  --gold-border: var(--accent-border);
+
+  --blue: var(--accent);
+  --blue-dark: var(--accent-dark);
+  --blue-light: var(--accent-light);
+  --blue-100: var(--accent-100);
+
+  --text-1: var(--ink);
+  --text-2: #6b6a62;
+  --text-3: #9a9a90;
 
   --surface: #ffffff;
-  --bg:      #f8fafc;
-  --border:  #e5e7eb;
+  --bg: var(--cream);
+  --border: #ddd6c8;
 
-  --cat-和食-bg:    #FEF9EC; --cat-和食-text:    #854F0B; --cat-和食-bd:    #FAC775;
-  --cat-洋食-bg:    #EAF3DE; --cat-洋食-text:    #3B6D11; --cat-洋食-bd:    #C0DD97;
-  --cat-中華-bg:    #FCEBEB; --cat-中華-text:    #A32D2D; --cat-中華-bd:    #F7C1C1;
-  --cat-イタリアン-bg:#EDE9FE;--cat-イタリアン-text:#6D28D9;--cat-イタリアン-bd:#C4B5FD;
-  --cat-アジアン-bg: #E1F5EE; --cat-アジアン-text: #0F6E56; --cat-アジアン-bd: #5DCAA5;
-  --cat-副菜-bg:    #E6F1FB; --cat-副菜-text:    #185FA5; --cat-副菜-bd:    #90bdea;
-  --cat-その他-bg:  #F1EFE8; --cat-その他-text:  #5F5E5A; --cat-その他-bd:  #B4B2A9;
+  --cat-和食-bg: #FEF9EC;
+  --cat-和食-text: #854F0B;
+  --cat-和食-bd: #FAC775;
+  --cat-洋食-bg: #EAF3DE;
+  --cat-洋食-text: #3B6D11;
+  --cat-洋食-bd: #C0DD97;
+  --cat-中華-bg: #FCEBEB;
+  --cat-中華-text: #A32D2D;
+  --cat-中華-bd: #F7C1C1;
+  --cat-イタリアン-bg: #EDE9FE;
+  --cat-イタリアン-text: #6D28D9;
+  --cat-イタリアン-bd: #C4B5FD;
+  --cat-アジアン-bg: #E1F5EE;
+  --cat-アジアン-text: #0F6E56;
+  --cat-アジアン-bd: #5DCAA5;
+  --cat-副菜-bg: #E6F1FB;
+  --cat-副菜-text: #185FA5;
+  --cat-副菜-bd: #90bdea;
+  --cat-その他-bg: #F1EFE8;
+  --cat-その他-text: #5F5E5A;
+  --cat-その他-bd: #B4B2A9;
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,.07);
-  --shadow-md: 0 4px 16px rgba(0,0,0,.09);
+  --shadow-sm: 0 1px 3px rgba(28, 28, 26, .06);
+  --shadow-md: 0 4px 16px rgba(28, 28, 26, .08);
   --t: .18s ease;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   font-family: -apple-system, 'Helvetica Neue', 'Noto Sans JP', sans-serif;
@@ -43,153 +78,363 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.page-wrapper { padding-bottom: 80px; min-height: 100vh; }
+.page-wrapper {
+  padding-bottom: 80px;
+  min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+  background: var(--bg);
+}
 
-/* ── ハニーゴールドヘッダー ── */
+/* 430px を超える幅（PCブラウザ等）では、フッター/FABと同じ
+   中央寄せの「アプリ枠」をはっきり見せるための軽いシャドウ */
+@media (min-width: 431px) {
+  .page-wrapper {
+    box-shadow: 0 0 40px rgba(28, 28, 26, .08);
+  }
+}
+
+/* ── トップバー（クリーム × セリフ見出し） ── */
 .topbar {
-  background: var(--gold);
-  padding: 16px 18px 12px;
-  position: sticky; top: 0; z-index: 50;
+  background: var(--surface);
+  padding: 18px 18px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--border);
 }
-.topbar-row { display: flex; align-items: center; justify-content: space-between; }
+
+.topbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .topbar-title {
-  font-size: 20px; font-weight: 600; color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,.15);
+  font-family: 'Noto Serif JP', Georgia, serif;
+  font-size: 21px;
+  font-weight: 500;
+  color: var(--ink);
 }
-.topbar-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 2px; }
+
+.topbar-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 3px;
+}
 
 .topbar-search {
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,.25);
-  border: 1px solid rgba(255,255,255,.4);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 8px 12px; margin-top: 10px;
+  padding: 9px 12px;
+  margin-top: 12px;
 }
+
 .topbar-search input {
-  border: none; background: transparent; outline: none;
-  font-size: 14px; color: #fff; width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: var(--ink);
+  width: 100%;
 }
-.topbar-search input::placeholder { color: rgba(255,255,255,.65); }
-.topbar-search i { color: rgba(255,255,255,.7); font-size: 16px; }
+
+.topbar-search input::placeholder {
+  color: var(--text-3);
+}
+
+.topbar-search i {
+  color: var(--text-3);
+  font-size: 16px;
+}
 
 /* ── カテゴリバッジ ── */
 .cat-badge {
-  font-size: 11px; padding: 2px 9px; border-radius: 999px;
-  font-weight: 600; display: inline-block; border: 1px solid;
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-weight: 600;
+  display: inline-block;
+  border: 1px solid;
 }
-.cat-和食      { background:var(--cat-和食-bg);    color:var(--cat-和食-text);    border-color:var(--cat-和食-bd); }
-.cat-洋食      { background:var(--cat-洋食-bg);    color:var(--cat-洋食-text);    border-color:var(--cat-洋食-bd); }
-.cat-中華      { background:var(--cat-中華-bg);    color:var(--cat-中華-text);    border-color:var(--cat-中華-bd); }
-.cat-イタリアン { background:var(--cat-イタリアン-bg);color:var(--cat-イタリアン-text);border-color:var(--cat-イタリアン-bd); }
-.cat-アジアン   { background:var(--cat-アジアン-bg); color:var(--cat-アジアン-text); border-color:var(--cat-アジアン-bd); }
-.cat-副菜      { background:var(--cat-副菜-bg);    color:var(--cat-副菜-text);    border-color:var(--cat-副菜-bd); }
-.cat-その他    { background:var(--cat-その他-bg);  color:var(--cat-その他-text);  border-color:var(--cat-その他-bd); }
+
+.cat-和食 {
+  background: var(--cat-和食-bg);
+  color: var(--cat-和食-text);
+  border-color: var(--cat-和食-bd);
+}
+
+.cat-洋食 {
+  background: var(--cat-洋食-bg);
+  color: var(--cat-洋食-text);
+  border-color: var(--cat-洋食-bd);
+}
+
+.cat-中華 {
+  background: var(--cat-中華-bg);
+  color: var(--cat-中華-text);
+  border-color: var(--cat-中華-bd);
+}
+
+.cat-イタリアン {
+  background: var(--cat-イタリアン-bg);
+  color: var(--cat-イタリアン-text);
+  border-color: var(--cat-イタリアン-bd);
+}
+
+.cat-アジアン {
+  background: var(--cat-アジアン-bg);
+  color: var(--cat-アジアン-text);
+  border-color: var(--cat-アジアン-bd);
+}
+
+.cat-副菜 {
+  background: var(--cat-副菜-bg);
+  color: var(--cat-副菜-text);
+  border-color: var(--cat-副菜-bd);
+}
+
+.cat-その他 {
+  background: var(--cat-その他-bg);
+  color: var(--cat-その他-text);
+  border-color: var(--cat-その他-bd);
+}
 
 /* ── ボトムナビ ── */
 .bnav {
-  position: fixed; bottom: 0; left: 50%;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
   transform: translateX(-50%);
-  width: 100%; max-width: 430px; height: 62px;
+  width: 100%;
+  max-width: 430px;
+  height: 62px;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  display: flex; z-index: 100;
+  box-shadow: 0 -4px 12px rgba(28, 28, 26, .06);
+  display: flex;
+  z-index: 100;
 }
+
 .bnav-item {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 3px; cursor: pointer; color: var(--text-3);
-  font-size: 11px; text-decoration: none;
-  border: none; background: none;
-  position: relative; transition: color var(--t);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 11px;
+  text-decoration: none;
+  border: none;
+  background: none;
+  position: relative;
+  transition: color var(--t);
 }
-.bnav-item i { font-size: 22px; position: relative; z-index: 1; }
-.bnav-item span { position: relative; z-index: 1; }
-.bnav-item.active { color: var(--blue); }
+
+.bnav-item i {
+  font-size: 22px;
+  position: relative;
+  z-index: 1;
+}
+
+.bnav-item span {
+  position: relative;
+  z-index: 1;
+}
+
+.bnav-item.active {
+  color: var(--accent-dark);
+}
+
 .bnav-item.active::before {
   content: '';
   position: absolute;
   inset: 6px 8px;
-  background: var(--blue-light);
+  background: var(--accent-light);
   border-radius: var(--radius-sm);
   z-index: 0;
 }
 
-/* ── FAB（＋追加 ラベル付き・ブルー） ── */
+.bnav-item i {
+  font-size: 20px;
+}
+
+.bnav-item span {
+  font-size: 10px;
+}
+
+/* ── FAB（＋追加 ラベル付き・セージ） ── */
 .fab {
   position: fixed;
   bottom: 72px;
   right: calc(50% - 215px + 14px);
   height: 42px;
   padding: 0 18px;
-  border-radius: 999px;               /* ピル型 */
-  background: var(--blue);
+  border-radius: 999px;
+  /* ピル型 */
+  background: var(--accent-dark);
   color: #fff;
   font-size: 14px;
   font-weight: 600;
-  display: flex; align-items: center; gap: 6px;
-  box-shadow: 0 4px 14px rgba(24,95,165,.40);
-  cursor: pointer; border: none; z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(95, 126, 92, .35);
+  cursor: pointer;
+  border: none;
+  z-index: 90;
   transition: var(--t);
   white-space: nowrap;
 }
-.fab:hover { background: var(--blue-dark); transform: translateY(-2px); }
-.fab i { font-size: 18px; }
+
+.fab:hover {
+  background: #4c6749;
+  transform: translateY(-2px);
+}
+
+.fab i {
+  font-size: 18px;
+}
 
 /* ── 汎用ボタン ── */
 .btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 18px; border-radius: var(--radius-sm);
-  font-size: 14px; font-weight: 600;
-  cursor: pointer; border: none; transition: var(--t);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: var(--t);
   text-decoration: none;
 }
-.btn-primary { background: var(--blue); color: #fff; }
-.btn-primary:hover { background: var(--blue-dark); }
-.btn-ghost   { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--bg); }
-.btn-danger  { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-.btn-gold    { background: var(--gold); color: #fff; }
-.btn-gold:hover { background: var(--gold-dark); }
+
+.btn-primary {
+  background: var(--accent-dark);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #4c6749;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+  background: var(--bg);
+}
+
+.btn-danger {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.btn-gold {
+  background: var(--accent-dark);
+  color: #fff;
+}
+
+.btn-gold:hover {
+  background: #4c6749;
+}
 
 /* ── フォームパーツ ── */
-.field { margin-bottom: 14px; }
-.field-label {
-  display: block; font-size: 12px; font-weight: 600;
-  color: var(--text-2); margin-bottom: 6px;
+.field {
+  margin-bottom: 14px;
 }
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+
 .field-input {
-  width: 100%; padding: 10px 12px;
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
-  font-size: 14px; font-family: inherit;
-  color: var(--text-1); background: var(--surface); outline: none;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-1);
+  background: var(--surface);
+  outline: none;
   transition: border-color var(--t);
 }
-.field-input:focus { border-color: var(--blue); }
-textarea.field-input { resize: vertical; min-height: 72px; }
+
+.field-input:focus {
+  border-color: var(--accent);
+}
+
+textarea.field-input {
+  resize: vertical;
+  min-height: 72px;
+}
 
 /* ── ヒントボックス（緑） ── */
 .tip-box {
-  background: #EAF3DE; border-radius: var(--radius-sm);
-  padding: 7px 10px; font-size: 12px; color: #3B6D11;
-  margin-top: 6px; display: flex; gap: 6px; align-items: flex-start;
+  background: #EAF3DE;
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 12px;
+  color: #3B6D11;
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
 }
 
 /* ── エラーバナー ── */
 .error-banner {
-  background: #fef2f2; color: #b91c1c;
-  border: 1px solid #fecaca; border-radius: var(--radius-sm);
-  padding: 10px 14px; font-size: 14px; margin-bottom: 14px;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 14px;
 }
 
 /* ── スピナー ── */
 .spinner {
-  display: flex; align-items: center; justify-content: center;
-  padding: 4rem; color: var(--text-3); font-size: 14px; gap: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: var(--text-3);
+  font-size: 14px;
+  gap: 10px;
+}
+
+/* ── ホーム画面ヘッダー検索 ── */
+.home-search-input::placeholder {
+  color: #b0a090;
 }
 
 /* ── カードセクション見出し ── */
 .section-label {
-  font-size: 12px; font-weight: 600; color: var(--text-3);
-  letter-spacing: .05em; padding: 12px 16px 6px;
-  display: flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: .05em;
+  padding: 12px 16px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }

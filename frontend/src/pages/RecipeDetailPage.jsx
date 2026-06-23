@@ -1,13 +1,15 @@
 /**
  * pages/RecipeDetailPage.jsx — レシピ詳細ページ
  *
- * useRecipeDetail / useAIPanel Hook に完全委譲。
- * このページの責務は JSX の描画のみ。
+ * v4.4 変更:
+ *   - 「共有」ボタンを追加し、ShareModal を呼び出せるようにした
+ *   - is_public / share_id の変更はローカル state（setRecipe）に即時反映する
  */
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useRecipeDetail, useAIPanel, displayAmount } from '../hooks/useRecipeDetail'
 import AIPanel from '../components/AIPanel'
+import ShareModal from '../components/ShareModal'
 import BottomNav from '../components/BottomNav'
 import '../global.css'
 
@@ -16,6 +18,7 @@ export default function RecipeDetailPage() {
   const navigate = useNavigate()
   const [showAI,      setShowAI]      = useState(false)
   const [showDelConf, setShowDelConf] = useState(false)
+  const [showShare,   setShowShare]   = useState(false)   // ← v4.4 追加
 
   const {
     recipe, loading,
@@ -24,6 +27,7 @@ export default function RecipeDetailPage() {
     activeTab, setActiveTab,
     checkedSteps, doneCount, totalSteps,
     changeServing, handleFav, handleImageUpload, handleDelete, toggleStep,
+    setRecipe,   // ← v4.4: ShareModal からの更新をローカルに反映するために使用
   } = useRecipeDetail(id, navigate)
 
   const aiPanel = useAIPanel(recipe)
@@ -56,6 +60,19 @@ export default function RecipeDetailPage() {
             AI生成
           </div>
         )}
+
+        {/* v4.4: 公開中バッジ（is_public な場合のみ表示） */}
+        {recipe.is_public && (
+          <div style={{
+            position: 'absolute', top: 10, left: recipe.is_ai_generated ? 92 : 10,
+            background: 'rgba(122,154,120,.9)', color: '#fff',
+            fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999,
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>
+            🌐 公開中
+          </div>
+        )}
+
         <label style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,.5)', color: '#fff', padding: '5px 12px', borderRadius: 'var(--radius-sm)', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
           写真を変更
           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleImageUpload(e.target.files?.[0])} />
@@ -150,6 +167,22 @@ export default function RecipeDetailPage() {
         <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap' }}>
           <button className="btn btn-primary" onClick={() => navigate(`/recipes/${id}/edit`)}>編集</button>
           <button className="btn btn-ghost" onClick={() => setShowAI(v => !v)}>AI相談</button>
+
+          {/* v4.4 追加: 共有ボタン（公開中なら見た目で分かるようにする） */}
+          <button
+            onClick={() => setShowShare(true)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '9px 14px', borderRadius: 'var(--radius-sm)',
+              background: recipe.is_public ? 'var(--accent-light)' : 'var(--bg)',
+              color: recipe.is_public ? 'var(--accent-dark)' : 'var(--text-2)',
+              border: `1px solid ${recipe.is_public ? 'var(--accent-100)' : 'var(--border)'}`,
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            {recipe.is_public ? '🌐 公開中' : '🔗 共有'}
+          </button>
+
           <button onClick={() => navigate('/shopping', { state: { recipe, servings } })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 'var(--radius-sm)', background: '#EAF3DE', color: '#3B6D11', border: '1px solid #C0DD97', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
             🛒 買い物リスト
           </button>
@@ -172,6 +205,16 @@ export default function RecipeDetailPage() {
       </div>
 
       {showAI && <AIPanel {...aiPanel} onClose={() => setShowAI(false)} />}
+
+      {/* v4.4 追加: 共有モーダル */}
+      {showShare && (
+        <ShareModal
+          recipe={recipe}
+          onClose={() => setShowShare(false)}
+          onUpdated={updated => setRecipe(prev => ({ ...prev, ...updated }))}
+        />
+      )}
+
       <BottomNav />
     </div>
   )

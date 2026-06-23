@@ -1,8 +1,12 @@
 """
 routers/schemas.py — リクエスト / レスポンス Pydantic スキーマ
 
-Router 層のバリデーション・シリアライズにのみ使用する。
-ORM モデル（models.py）とは分離する。
+v4.4.1 修正:
+  - RecipeOut に is_public / share_id を追加
+    （これが欠落していたため、再ログイン後にShareModalが
+     「未公開」として初期化される不具合が発生していた。
+     DBには正しく保存されていたが、APIレスポンスから
+     除外されていたためフロントが状態を復元できなかった。）
 """
 from __future__ import annotations
 from datetime import datetime
@@ -64,6 +68,12 @@ class RecipeOut(BaseModel):
     steps:           list[dict]
     created_at:      datetime
     updated_at:      datetime
+
+    # v4.4 で追加されたが、スキーマへの反映漏れがあったフィールド（v4.4.1 で修正）
+    is_public:       bool           = False
+    share_id:        Optional[str] = None
+    forked_from:     Optional[int] = None
+
     model_config    = {"from_attributes": True}
 
 

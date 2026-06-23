@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchRecipes } from '../api/recipeApi'
 import BottomNav from '../components/BottomNav'
@@ -9,12 +9,12 @@ function scoreRecipe(recipe) {
   const h = new Date().getHours()
   const m = new Date().getMonth() + 1
   let score = 0
-  if (h < 11 && recipe.cook_time <= 20) score += 3
+  if (h < 11 && recipe.cook_time <= 20)               score += 3
   if (h >= 11 && h < 17 && recipe.category === '副菜') score += 2
-  if (h >= 17 && recipe.cook_time > 20) score += 3
-  if (h >= 17 && recipe.category === '和食') score += 1
-  if ([6, 7, 8].includes(m) && ['アジアン', '洋食'].includes(recipe.category)) score += 2
-  if ([11, 12, 1, 2].includes(m) && ['和食', '中華'].includes(recipe.category)) score += 2
+  if (h >= 17 && recipe.cook_time > 20)               score += 3
+  if (h >= 17 && recipe.category === '和食')           score += 1
+  if ([6,7,8].includes(m) && ['アジアン','洋食'].includes(recipe.category)) score += 2
+  if ([11,12,1,2].includes(m) && ['和食','中華'].includes(recipe.category)) score += 2
   if (recipe.is_favorite) score += 1
   return score
 }
@@ -24,48 +24,48 @@ function getTimeConfig() {
   const h = new Date().getHours()
   if (h >= 5 && h < 11) {
     return {
-      image: '/images/header/morning.jpg',
+      image:    '/images/header/morning.jpg',
       greeting: 'おはようございます',
-      sub: '今朝は何食べる？',
-      badge: '朝の時間帯 · 時短レシピがおすすめ',
+      sub:      '今朝は何食べる？',
+      badge:    '朝の時間帯 · 時短レシピがおすすめ',
       // 朝は画像が明るいので文字を暗く
-      textColor: '#ffffff',
-      subColor: 'rgba(255,255,255,.8)',
-      badgeBg: 'rgba(255,255,255,.65)',
-      badgeColor: '#3a3020',
-      badgeBorder: 'rgba(0,0,0,.1)',
-      dotColor: '#e09020',
+      textColor:    '#1c1c1a',
+      subColor:     'rgba(28,28,26,.6)',
+      badgeBg:      'rgba(255,255,255,.65)',
+      badgeColor:   '#3a3020',
+      badgeBorder:  'rgba(0,0,0,.1)',
+      dotColor:     '#e09020',
       // オーバーレイは薄め（朝の明るさを活かす）
-      overlay: 'linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.25) 50%, rgba(244,241,236,.97) 100%)',
+      overlay: 'linear-gradient(180deg, rgba(0,0,0,.18) 0%, rgba(0,0,0,.08) 50%, rgba(244,241,236,.97) 100%)',
     }
   }
   if (h >= 11 && h < 17) {
     return {
-      image: '/images/header/noon.jpg',
+      image:    '/images/header/noon.jpg',
       greeting: 'こんにちは',
-      sub: 'ランチは決まった？',
-      badge: '昼の時間帯 · 副菜・あっさり系がおすすめ',
-      textColor: '#ffffff',
-      subColor: 'rgba(255,255,255,.8)',
-      badgeBg: 'rgba(255,255,255,.65)',
-      badgeColor: '#2a3a2a',
-      badgeBorder: 'rgba(0,0,0,.1)',
-      dotColor: '#5a9848',
+      sub:      'ランチは決まった？',
+      badge:    '昼の時間帯 · 副菜・あっさり系がおすすめ',
+      textColor:    '#1c2a1c',
+      subColor:     'rgba(28,42,28,.6)',
+      badgeBg:      'rgba(255,255,255,.65)',
+      badgeColor:   '#2a3a2a',
+      badgeBorder:  'rgba(0,0,0,.1)',
+      dotColor:     '#5a9848',
       overlay: 'linear-gradient(180deg, rgba(0,0,0,.22) 0%, rgba(0,0,0,.10) 50%, rgba(244,241,236,.97) 100%)',
     }
   }
   return {
-    image: '/images/header/night.jpg',
+    image:    '/images/header/night.jpg',
     greeting: 'こんばんは',
-    sub: '今夜は何作る？',
-    badge: '夜の時間帯 · しっかりした料理がおすすめ',
+    sub:      '今夜は何作る？',
+    badge:    '夜の時間帯 · しっかりした料理がおすすめ',
     // 夜は画像が暗いので文字を白に
-    textColor: '#ffffff',
-    subColor: 'rgba(255,255,255,.75)',
-    badgeBg: 'rgba(255,255,255,.12)',
-    badgeColor: 'rgba(255,255,255,.8)',
-    badgeBorder: 'rgba(255,255,255,.2)',
-    dotColor: '#8090d8',
+    textColor:    '#ffffff',
+    subColor:     'rgba(255,255,255,.75)',
+    badgeBg:      'rgba(255,255,255,.12)',
+    badgeColor:   'rgba(255,255,255,.8)',
+    badgeBorder:  'rgba(255,255,255,.2)',
+    dotColor:     '#8090d8',
     overlay: 'linear-gradient(180deg, rgba(0,0,0,.38) 0%, rgba(0,0,0,.20) 50%, rgba(244,241,236,.97) 100%)',
   }
 }
@@ -73,17 +73,18 @@ function getTimeConfig() {
 function aiSuggestReason(recipe) {
   const h = new Date().getHours()
   const m = new Date().getMonth() + 1
-  if (h < 11) return '朝は時短レシピがおすすめです'
+  if (h < 11)                    return '朝は時短レシピがおすすめです'
   if (h >= 17 && recipe.cook_time > 20) return '夜ごはんにじっくり作りたい一品です'
-  if ([6, 7, 8].includes(m)) return '夏にぴったりさっぱりした料理です'
-  if ([11, 12, 1, 2].includes(m)) return '寒い季節に体が温まる一品です'
+  if ([6,7,8].includes(m))       return '夏にぴったりさっぱりした料理です'
+  if ([11,12,1,2].includes(m))   return '寒い季節に体が温まる一品です'
   return 'あなたのライブラリから選びました'
 }
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const [recipes, setRecipes] = useState([])
+  const [recipes,   setRecipes]   = useState([])
   const [aiSuggest, setAiSuggest] = useState(null)
+  const [headerSearch, setHeaderSearch] = useState('')
 
   const tc = getTimeConfig()
 
@@ -96,7 +97,7 @@ export default function HomePage() {
           setAiSuggest(scored[0])
         }
       })
-      .catch(() => { })
+      .catch(() => {})
   }, [])
 
   const recent = recipes.slice(0, 3)
@@ -109,20 +110,20 @@ export default function HomePage() {
 
         {/* 背景画像 */}
         <div style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `url(${tc.image})`,
-          backgroundSize: 'cover',
+          position:           'absolute',
+          inset:               0,
+          backgroundImage:    `url(${tc.image})`,
+          backgroundSize:     'cover',
           backgroundPosition: 'center top',
-          zIndex: 0,
+          zIndex:              0,
         }} />
 
         {/* グラデーションオーバーレイ */}
         <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: tc.overlay,
-          zIndex: 1,
+          position:   'absolute',
+          inset:       0,
+          background:  tc.overlay,
+          zIndex:      1,
         }} />
 
         {/* ヘッダーコンテンツ */}
@@ -183,7 +184,22 @@ export default function HomePage() {
             backdropFilter: 'blur(12px)',
           }}>
             <span style={{ fontSize: 14, color: '#b0a090' }}>🔍</span>
-            <span style={{ fontSize: 13, color: '#b0a090', fontWeight: 300 }}>レシピを検索…</span>
+            <input
+              className="home-search-input"
+              value={headerSearch}
+              onChange={e => setHeaderSearch(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  navigate('/library', { state: { initialSearch: headerSearch.trim() } })
+                }
+              }}
+              placeholder="レシピを検索…"
+              style={{
+                flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                fontSize: 13, color: '#5a5044', fontWeight: 400,
+              }}
+            />
           </div>
         </div>
 
@@ -245,7 +261,7 @@ export default function HomePage() {
               }}>
                 {aiSuggest.image_url
                   ? <img src={aiSuggest.image_url} alt={aiSuggest.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <span style={{ fontSize: 28, opacity: .4 }}>🍳</span>
                 }
               </div>
@@ -315,7 +331,7 @@ export default function HomePage() {
                 }}>
                   {r.image_url
                     ? <img src={r.image_url} alt={r.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : <span style={{ fontSize: 30, opacity: .4 }}>🍳</span>
                   }
                 </div>

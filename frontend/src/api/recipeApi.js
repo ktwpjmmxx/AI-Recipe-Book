@@ -1,82 +1,79 @@
 /**
  * api/recipeApi.js — バックエンド通信レイヤー
  *
- * 改善点:
- *   - timeout: 30000 でAI待ちによる無限ローディングを防止
- *   - interceptors でエラーを一元ログ
- *   - 関数ごとに JSDoc を付与
+ * v4.4 追加:
+ *   setRecipeVisibility() : 公開/非公開の切り替え
+ *   fetchPublicRecipe()   : 共有URL経由でのレシピ取得（認証ヘッダー不要だが付与しても問題ない）
+ *   forkRecipe()          : 公開レシピを自分のライブラリにフォーク
  */
 import axios from 'axios'
+import { getToken } from '../context/AuthContext'
 
 const api = axios.create({
   baseURL: '/api',
-  timeout: 30000, // 30秒タイムアウト（AI生成はやや長めに確保）
+  timeout: 30000,
 })
 
-// レスポンスエラーを一元ログ（デバッグに便利）
+api.interceptors.request.use(config => {
+  const token = getToken()
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
 api.interceptors.response.use(
   res => res,
   err => {
     const status = err?.response?.status
     const url    = err?.config?.url
-    if (err.code === 'ECONNABORTED') {
-      console.error(`[API] タイムアウト: ${url}`)
-    } else {
-      console.error(`[API] ${status ?? 'network error'}: ${url}`)
-    }
+    if (err.code === 'ECONNABORTED') console.error(`[API] タイムアウト: ${url}`)
+    else console.error(`[API] ${status ?? 'network error'}: ${url}`)
     return Promise.reject(err)
   }
 )
 
-// ── レシピ CRUD ──────────────────────────────
-/** @param {{ category?:string, sort?:string, order?:string, favorites_only?:boolean }} params */
-export const fetchRecipes    = (params = {})  => api.get('/recipes', { params }).then(r => r.data)
-/** @param {number} id */
-export const fetchRecipe     = id             => api.get(`/recipes/${id}`).then(r => r.data)
-/** @param {object} data */
-export const createRecipe    = data           => api.post('/recipes', data).then(r => r.data)
-/** @param {number} id @param {object} data */
-export const updateRecipe    = (id, data)     => api.patch(`/recipes/${id}`, data).then(r => r.data)
-/** @param {number} id */
-export const deleteRecipe    = id             => api.delete(`/recipes/${id}`)
-/** @param {number} id */
-export const toggleFavorite  = id             => api.patch(`/recipes/${id}/favorite`).then(r => r.data)
-export const fetchCategories = ()             => api.get('/categories').then(r => r.data)
-/** @param {number} id @param {string} question */
-export const askRecipeAI     = (id, question) => api.post(`/recipes/${id}/ai-assist`, { question }).then(r => r.data)
-export const suggestMenu     = question       => api.post('/ai/suggest-menu', { question }).then(r => r.data)
+export default api
 
-/** @param {number} id @param {File} file */
+// ── レシピ CRUD ──────────────────────────────
+export const fetchRecipes    = (params = {}) => api.get('/recipes', { params }).then(r => r.data)
+export const fetchRecipe     = id            => api.get(`/recipes/${id}`).then(r => r.data)
+export const createRecipe    = data          => api.post('/recipes', data).then(r => r.data)
+export const updateRecipe    = (id, data)    => api.patch(`/recipes/${id}`, data).then(r => r.data)
+export const deleteRecipe    = id            => api.delete(`/recipes/${id}`)
+export const toggleFavorite  = id            => api.patch(`/recipes/${id}/favorite`).then(r => r.data)
+export const fetchCategories = ()            => api.get('/categories').then(r => r.data)
+export const askRecipeAI     = (id, q)       => api.post(`/recipes/${id}/ai-assist`, { question: q }).then(r => r.data)
+
 export const uploadImage = (id, file) => {
   const form = new FormData()
   form.append('file', file)
   return api.post(`/recipes/${id}/image`, form, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 60000, // 画像アップロードは少し長めに
+    timeout: 60000,
   }).then(r => r.data)
 }
 
-// ── AI 発見・生成 ────────────────────────────
-/** @param {{ mood?:string, max_time?:number, category?:string }} params */
-export const discoverRecipes = (params = {}) =>
-  api.post('/ai/discover', params).then(r => r.data)
+// ── v4.4: 共有・フォーク ───────────────────────
+/** @param {number} id @param {boolean} isPublic */
+export const setRecipeVisibility = (id, isPublic) =>
+  api.patch(`/recipes/${id}/visibility`, { is_public: isPublic }).then(r => r.data)
 
-/** @param {{ title:string, servings:number }} params */
-export const generateRecipe = params =>
-  api.post('/ai/generate-recipe', params).then(r => r.data)
+/** @param {string} shareId — 認証不要。ログイン前のユーザーでも呼び出せる */
+export const fetchPublicRecipe = shareId =>
+  api.get(`/public/recipes/${shareId}`).then(r => r.data)
+
+/** @param {string} shareId — 認証必須。自分のライブラリにコピーする */
+export const forkRecipe = shareId =>
+  api.post(`/public/recipes/${shareId}/fork`).then(r => r.data)
+
+// ── AI ───────────────────────────────────────
+export const discoverRecipes = (params = {}) => api.post('/ai/discover', params).then(r => r.data)
+export const generateRecipe  = params        => api.post('/ai/generate-recipe', params).then(r => r.data)
+export const suggestMenu     = question      => api.post('/ai/suggest-menu', { question }).then(r => r.data)
+export const searchAssist    = question      => api.post('/ai/search-assist', { question }).then(r => r.data)
 
 // ── 買い物リスト ──────────────────────────────
-export const fetchShoppingLists = () =>
-  api.get('/shopping-lists').then(r => r.data)
-
-export const fetchShoppingList = id =>
-  api.get(`/shopping-lists/${id}`).then(r => r.data)
-
-export const createShoppingList = data =>
-  api.post('/shopping-lists', data).then(r => r.data)
-
-export const updateShoppingListItems = (id, items) =>
-  api.patch(`/shopping-lists/${id}/items`, items).then(r => r.data)
-
-export const deleteShoppingList = id =>
-  api.delete(`/shopping-lists/${id}`)
+export const fetchShoppingLists      = ()          => api.get('/shopping-lists').then(r => r.data)
+export const fetchShoppingList       = id          => api.get(`/shopping-lists/${id}`).then(r => r.data)
+export const createShoppingList      = data        => api.post('/shopping-lists', data).then(r => r.data)
+export const updateShoppingListItems = (id, items) => api.patch(`/shopping-lists/${id}/items`, items).then(r => r.data)
+export const deleteShoppingList      = id          => api.delete(`/shopping-lists/${id}`)

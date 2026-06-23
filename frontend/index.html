@@ -2,25 +2,33 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ── PWA 必須メタタグ ── -->
+
+    <!-- モバイルブラウザのビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!--
+      viewport-fit=cover: iPhone のノッチ・Dynamic Island 周辺まで
+      コンテンツを広げる（safe-area-inset-* で余白を制御）
+    -->
+
+    <!-- iOS ホーム画面追加時の設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="MyRecipe" />
+
+    <!-- Android / Chrome のテーマカラー（ブラウザのツールバー色） -->
+    <meta name="theme-color" content="#f4f1ec" />
+
+    <!-- iOS アイコン（Safari の「ホーム画面に追加」で使用） -->
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+    <!-- Web App Manifest（vite-plugin-pwa が自動注入するが念のため明示） -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- ── 通常の head ── -->
+    <link rel="icon" type="image/png" href="/icons/icon-192.png" />
     <title>MyRecipeBook</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css">
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body {
-        font-family: -apple-system, 'Helvetica Neue', 'Noto Sans JP', sans-serif;
-        background: #f0f4f8;
-        min-height: 100vh;
-      }
-      #root {
-        max-width: 430px;
-        margin: 0 auto;
-        min-height: 100vh;
-        background: #ffffff;
-        position: relative;
-        box-shadow: 0 0 40px rgba(0,0,0,0.08);
-      }
-    </style>
   </head>
   <body>
     <div id="root"></div>

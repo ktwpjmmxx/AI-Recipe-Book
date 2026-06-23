@@ -15,6 +15,7 @@ export default function FavoritesPage() {
   }, [])
 
   const handleUpdate = (updated) => {
+    // お気に入り解除されたらリストから除外
     if (!updated.is_favorite) {
       setRecipes(prev => prev.filter(r => r.id !== updated.id))
     } else {
@@ -37,16 +38,11 @@ export default function FavoritesPage() {
         {loading ? (
           <div className="spinner"><i className="ti ti-loader-2" style={{ fontSize: 24 }} />読み込み中…</div>
         ) : recipes.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-            <div style={{
-              width: 60, height: 60, borderRadius: '50%', background: 'var(--gold-light)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px',
-            }}>
-              <i className="ti ti-heart" style={{ fontSize: 28, color: 'var(--gold-dark)' }} />
-            </div>
-            <p style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>お気に入りがまだありません</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.7 }}>
-              レシピ詳細のハートマークをタップして<br />お気に入りに登録できます
+          <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-3)' }}>
+            <i className="ti ti-heart" style={{ fontSize: 48, opacity: .3 }} />
+            <p style={{ marginTop: 12, fontSize: 14, lineHeight: 1.7 }}>
+              お気に入りのレシピはまだありません。<br />
+              レシピ詳細のハートマークで追加できます。
             </p>
           </div>
         ) : (
@@ -57,6 +53,7 @@ export default function FavoritesPage() {
           </div>
         )}
       </div>
+
       <BottomNav />
     </div>
   )

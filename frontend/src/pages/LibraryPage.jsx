@@ -1,15 +1,17 @@
 /**
  * pages/LibraryPage.jsx — ライブラリページ
  *
- * v4.0: useRecipes / useSavedShoppingLists Hook に委譲。
- * 「レシピ | 買い物リスト」サブタブを含む。
+ * v4.4.1 変更:
+ *   - 「リンクから追加」ボタンを検索バー横に追加
+ *   - AddByLinkModal を呼び出して共有URL/IDからのフォークを行えるようにした
  */
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useRecipes } from '../hooks/useRecipes'
 import { useSavedShoppingLists } from '../hooks/useShoppingList'
 import RecipeCard from '../components/RecipeCard'
 import BottomNav  from '../components/BottomNav'
+import AddByLinkModal from '../components/AddByLinkModal'   // ← v4.4.1 追加
 import '../global.css'
 
 const SORT_OPTIONS = [
@@ -105,7 +107,7 @@ function ShoppingListsTab() {
 
   if (lists.length === 0) return (
     <div style={{ textAlign:'center',padding:'4rem 2rem' }}>
-      <div style={{ width:60,height:60,borderRadius:'50%',background:'var(--gold-light)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px',fontSize:28 }}>🛒</div>
+      <div style={{ width:60,height:60,borderRadius:'50%',background:'var(--accent-light)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px',fontSize:28 }}>🛒</div>
       <p style={{ fontSize:15,fontWeight:600,marginBottom:6 }}>保存済みの買い物リストはありません</p>
       <p style={{ fontSize:13,color:'var(--text-3)',lineHeight:1.7 }}>
         レシピ詳細 → 「🛒 買い物リスト」から<br />リストを作成して保存できます
@@ -138,7 +140,7 @@ function ShoppingListsTab() {
             {/* 進捗バー */}
             <div style={{ display:'flex',alignItems:'center',gap:8,marginBottom:8 }}>
               <div style={{ flex:1,height:4,background:'#E5E7EB',borderRadius:999,overflow:'hidden' }}>
-                <div style={{ height:'100%',background:doneCount===total&&total>0?'#3B6D11':'var(--blue)',borderRadius:999,width:`${total>0?(doneCount/total)*100:0}%`,transition:'width .3s ease' }} />
+                <div style={{ height:'100%',background:doneCount===total&&total>0?'#3B6D11':'var(--accent-dark)',borderRadius:999,width:`${total>0?(doneCount/total)*100:0}%`,transition:'width .3s ease' }} />
               </div>
               <span style={{ fontSize:11,color:'var(--text-3)',flexShrink:0 }}>{doneCount}/{total} 完了</span>
             </div>
@@ -147,7 +149,7 @@ function ShoppingListsTab() {
             {needItems.length > 0 && (
               <div style={{ display:'flex',flexWrap:'wrap',gap:5,marginBottom:8 }}>
                 {needItems.slice(0,3).map((item,i) => (
-                  <span key={i} style={{ fontSize:11,background:'var(--blue-light)',color:'var(--blue)',padding:'2px 8px',borderRadius:4 }}>
+                  <span key={i} style={{ fontSize:11,background:'var(--accent-light)',color:'var(--accent-dark)',padding:'2px 8px',borderRadius:4 }}>
                     {item.name} {item.needed}{item.unit}
                   </span>
                 ))}
@@ -157,7 +159,7 @@ function ShoppingListsTab() {
               </div>
             )}
 
-            <button onClick={() => navigate(`/shopping-lists/${list.id}`)} style={{ width:'100%',padding:'8px 0',background:'var(--bg)',border:'1px solid var(--border)',borderRadius:'var(--radius-sm)',fontSize:13,fontWeight:600,color:'var(--blue)',cursor:'pointer' }}>
+            <button onClick={() => navigate(`/shopping-lists/${list.id}`)} style={{ width:'100%',padding:'8px 0',background:'var(--bg)',border:'1px solid var(--border)',borderRadius:'var(--radius-sm)',fontSize:13,fontWeight:600,color:'var(--accent-dark)',cursor:'pointer' }}>
               買い物リストを開く →
             </button>
           </div>
@@ -184,9 +186,19 @@ function ShoppingListsTab() {
 // ── メインページ ──────────────────────────────
 export default function LibraryPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [mainTab, setMainTab] = useState('recipes')
   const [sortKey, setSortKey] = useState('date')
-  const [search,  setSearch]  = useState('')
+  const [search,  setSearch]  = useState(location.state?.initialSearch || '')
+  const [showAddByLink, setShowAddByLink] = useState(false)   // ← v4.4.1 追加
+
+  // ホーム画面のヘッダー検索から遷移してきた場合、検索語を反映する
+  useEffect(() => {
+    if (location.state?.initialSearch !== undefined) {
+      setSearch(location.state.initialSearch)
+      setMainTab('recipes')
+    }
+  }, [location.state])
 
   const { sorted, recipes, loading, handleUpdate } = useRecipes({ sortKey, search })
   const groups = useMemo(() => groupRecipes(sorted, sortKey), [sorted, sortKey])
@@ -202,6 +214,21 @@ export default function LibraryPage() {
               {mainTab === 'recipes' ? `${recipes.length} レシピ保存中` : '保存済みの買い物リスト'}
             </div>
           </div>
+          {/* v4.4.1 追加: リンクから追加 */}
+          {mainTab === 'recipes' && (
+            <button
+              onClick={() => setShowAddByLink(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                background: 'var(--accent-light)', border: '1px solid var(--accent-100)',
+                borderRadius: 'var(--radius-sm)', padding: '6px 12px',
+                fontSize: 12, fontWeight: 600, color: 'var(--accent-dark)', cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              🔗 リンクから追加
+            </button>
+          )}
         </div>
         {mainTab === 'recipes' && (
           <div className="topbar-search">
@@ -212,7 +239,7 @@ export default function LibraryPage() {
               onChange={e => setSearch(e.target.value)}
             />
             {search && (
-              <button onClick={() => setSearch('')} style={{ background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,.7)',fontSize:16,padding:0 }}>✕</button>
+              <button onClick={() => setSearch('')} style={{ background:'none',border:'none',cursor:'pointer',color:'var(--text-3)',fontSize:16,padding:0 }}>✕</button>
             )}
           </div>
         )}
@@ -227,8 +254,8 @@ export default function LibraryPage() {
           <button key={tab.key} onClick={() => setMainTab(tab.key)} style={{
             flex:1,padding:'11px 0',fontSize:13,fontWeight:600,
             background:'none',border:'none',cursor:'pointer',
-            color:mainTab===tab.key?'var(--blue)':'var(--text-3)',
-            borderBottom:mainTab===tab.key?'2px solid var(--blue)':'2px solid transparent',
+            color:mainTab===tab.key?'var(--accent-dark)':'var(--text-3)',
+            borderBottom:mainTab===tab.key?'2px solid var(--accent-dark)':'2px solid transparent',
             transition:'all var(--t)',
           }}>{tab.label}</button>
         ))}
@@ -241,8 +268,8 @@ export default function LibraryPage() {
             {SORT_OPTIONS.map(opt => (
               <button key={opt.key} onClick={() => setSortKey(opt.key)} style={{
                 flexShrink:0,padding:'6px 14px',borderRadius:999,fontSize:13,border:'1px solid',
-                borderColor:sortKey===opt.key?'var(--blue)':'var(--border)',
-                background: sortKey===opt.key?'var(--blue)':'var(--surface)',
+                borderColor:sortKey===opt.key?'var(--accent-dark)':'var(--border)',
+                background: sortKey===opt.key?'var(--accent-dark)':'var(--surface)',
                 color:      sortKey===opt.key?'#fff':'var(--text-2)',
                 cursor:'pointer',transition:'all var(--t)',
               }}>{opt.label}</button>
@@ -253,7 +280,7 @@ export default function LibraryPage() {
             <div className="spinner">読み込み中…</div>
           ) : sorted.length === 0 ? (
             <div style={{ textAlign:'center',padding:'4rem 2rem' }}>
-              <div style={{ width:60,height:60,borderRadius:'50%',background:'var(--gold-light)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px' }}>
+              <div style={{ width:60,height:60,borderRadius:'50%',background:'var(--accent-light)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px' }}>
                 <span style={{ fontSize:28 }}>🍳</span>
               </div>
               <p style={{ fontSize:15,fontWeight:600 }}>
@@ -286,6 +313,9 @@ export default function LibraryPage() {
 
       {/* 買い物リストタブ */}
       {mainTab === 'shopping' && <ShoppingListsTab />}
+
+      {/* v4.4.1 追加: リンクから追加モーダル */}
+      {showAddByLink && <AddByLinkModal onClose={() => setShowAddByLink(false)} />}
 
       <BottomNav />
     </div>
