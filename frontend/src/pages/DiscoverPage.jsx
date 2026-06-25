@@ -133,10 +133,9 @@ export default function DiscoverPage() {
   if (step === STEP.RESULTS) return (
     <div className="page-wrapper">
       <div className="topbar">
-        <div className="topbar-row">
-          <button onClick={() => reset()} style={{ background: 'rgba(255,255,255,.2)', border: '1px solid rgba(255,255,255,.4)', borderRadius: 'var(--radius-sm)', padding: '6px 12px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>← 条件を変える</button>
-          <span className="topbar-title" style={{ flex: 1, textAlign: 'center' }}>AIの提案</span>
-          <div style={{ width: 80 }} />
+        <div className="topbar-row" style={{ position: 'relative' }}>
+          <button onClick={() => reset()} style={{ background: 'rgba(255,255,255,.2)', border: '1px solid rgba(255,255,255,.4)', borderRadius: 'var(--radius-sm)', padding: '6px 12px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>← 条件を変える</button>
+          <span className="topbar-title" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none' }}>AIの提案</span>
         </div>
       </div>
       <div style={{ padding: '16px' }}>

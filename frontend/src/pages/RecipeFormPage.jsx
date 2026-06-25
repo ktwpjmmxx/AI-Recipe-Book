@@ -5,10 +5,26 @@ import '../global.css'
 
 const CATEGORIES      = ['和食', '洋食', '中華', 'イタリアン', 'アジアン', '副菜', 'その他']
 const SERVING_OPTIONS = [0.5, 1, 2, 3, 4, 6]
-const UNITS           = ['g', 'kg', 'ml', 'l', '個', '枚', '本', '束', '切れ', '片', '缶', '袋']
+
+// ── 単位リスト（v4.5 拡充） ──
+// 調理現場で実際に使われる単位を網羅する形に拡張。
+// 既存の g/kg/ml/l/個/枚/本/束/切れ/片/缶/袋 に加え、
+// 魚介（尾・匹）、塊肉、少量計量（つまみ・さじ系）、
+// その他の日常的な単位（玉・株・房・粒・パック・丁）を追加した。
+const UNITS = [
+  'g', 'kg', 'ml', 'l',
+  '個', '枚', '本', '束', '切れ', '片', '缶', '袋',
+  '尾', '匹',       // 魚介類（秋刀魚2尾、海老5匹 など）
+  '玉', '株', '房', '粒',  // 野菜・果物（キャベツ1玉、ブロッコリー1株、バナナ1房、ぶどう10粒）
+  '丁', 'パック',    // 豆腐1丁、納豆1パック
+  '塊', 'かけ',      // 肉の塊、生姜ひとかけ
+  '振り', 'つまみ',  // 少量計量（塩ひとつまみ、こしょう2振り）
+]
+
 const TEXT_SUGGESTIONS = [
   '大さじ1', '大さじ2', '大さじ3', '大さじ1/2', '大さじ2〜3',
-  '小さじ1', '小さじ2', '小さじ1/2', '適量', '少々', 'ひとつまみ', 'お好みで',
+  '小さじ1', '小さじ2', '小さじ1/2', '小さじ1/4', '小さじ1/8',
+  '適量', '少々', 'ひとつまみ', 'お好みで',
 ]
 
 const emptyIng  = () => ({ name: '', mode: 'num', amount: '', unit: 'g', amount_text: '' })
@@ -77,7 +93,14 @@ function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
           <input
             className="field-input"
             type="number"
-            placeholder="例：200"
+            /* v4.5 修正:
+               以前は step 未指定（ブラウザ既定の step=1）で小数が入力できず、
+               「1/2個」を表したい場合に「0.5個」と書くしかなかった。
+               step="0.1" にすることで 0.5・1.5 のような一般的な分量表記も
+               直接入力できるようにする。 */
+            step="0.1"
+            min="0"
+            placeholder="例：1.5"
             value={ing.amount}
             onChange={e => set('amount', e.target.value)}
             style={{ width: 90, flex: 'none', textAlign: 'right', background: 'var(--surface)' }}
@@ -99,24 +122,42 @@ function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
 
       {/* 2行目：テキストモード */}
       {ing.mode === 'text' && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0, width: 24 }}>量</span>
-          <input
-            list={`sug-${index}`}
-            className="field-input"
-            placeholder="例：大さじ1、適量"
-            value={ing.amount_text}
-            onChange={e => set('amount_text', e.target.value)}
-            style={{ flex: 1, background: 'var(--surface)' }}
-          />
-          <datalist id={`sug-${index}`}>
-            {TEXT_SUGGESTIONS.map(u => <option key={u} value={u} />)}
-          </datalist>
-          <span style={{
-            fontSize: 10, color: 'var(--gold-dark)', background: 'var(--gold-light)',
-            padding: '3px 7px', borderRadius: 4, flexShrink: 0, fontWeight: 500,
-            border: '1px solid #E8D080',
-          }}>固定表示</span>
+        <div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0, width: 24 }}>量</span>
+            <input
+              list={`sug-${index}`}
+              className="field-input"
+              placeholder="例：大さじ1、小さじ1/8、適量"
+              value={ing.amount_text}
+              onChange={e => set('amount_text', e.target.value)}
+              style={{ flex: 1, background: 'var(--surface)' }}
+            />
+            <datalist id={`sug-${index}`}>
+              {TEXT_SUGGESTIONS.map(u => <option key={u} value={u} />)}
+            </datalist>
+            <span style={{
+              fontSize: 10, color: 'var(--gold-dark)', background: 'var(--gold-light)',
+              padding: '3px 7px', borderRadius: 4, flexShrink: 0, fontWeight: 500,
+              border: '1px solid #E8D080',
+            }}>固定表示</span>
+          </div>
+
+          {/* v4.5 追加:
+              方向性A（最小コスト）の実装。
+              「小さじ1/8」のような自由記述は人数変更時に自動換算されない
+              仕様であることを、入力時点でユーザーに明示する。
+              これにより「換算されているはず」という誤解を防ぐ。 */}
+          <p style={{
+            fontSize: 11, color: 'var(--text-3)', marginTop: 6,
+            lineHeight: 1.5, display: 'flex', gap: 5, alignItems: 'flex-start',
+          }}>
+            <span style={{ flexShrink: 0 }}>ℹ️</span>
+            <span>
+              文字入力した分量は人数を変更しても<strong>そのまま固定表示</strong>されます（自動計算されません）。
+              人数に応じて自動計算したい場合は「数値」モードをお使いください。
+            </span>
+          </p>
         </div>
       )}
 

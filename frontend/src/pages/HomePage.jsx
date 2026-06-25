@@ -20,53 +20,72 @@ function scoreRecipe(recipe) {
 }
 
 // ── 時刻別: ヘッダー画像・挨拶・サブテキスト ────
+//
+// v4.5 修正:
+//   昼の文字色（旧 #1c2a1c の暗い緑）が、明るい野菜・木目の背景画像と
+//   重なるとほぼ視認できなくなる問題を修正。
+//   「全時間帯を白に統一する」のではなく、各時間帯の背景画像の明るさに
+//   見合った文字色・オーバーレイ濃度を個別にチューニングし、
+//   さらに textShadow を安全策として全時間帯に追加することで、
+//   同じ画像内の明暗差（雲の隙間から日が差す部分など）にも耐性を持たせている。
 function getTimeConfig() {
   const h = new Date().getHours()
+
   if (h >= 5 && h < 11) {
     return {
       image:    '/images/header/morning.jpg',
       greeting: 'おはようございます',
       sub:      '今朝は何食べる？',
       badge:    '朝の時間帯 · 時短レシピがおすすめ',
-      // 朝は画像が明るいので文字を暗く
+      // 朝の背景（暖色の光・パン・コーヒー）は中間的な明るさなので、
+      // 濃いインク色 + 明るいテキストシャドウで縁取りし、
+      // 画像が想定より明るい朝（雲が薄い日等）でも文字が浮くようにする。
       textColor:    '#1c1c1a',
-      subColor:     'rgba(28,28,26,.6)',
-      badgeBg:      'rgba(255,255,255,.65)',
+      subColor:     'rgba(28,28,26,.7)',
+      textShadow:   '0 1px 3px rgba(255,255,255,.55), 0 1px 8px rgba(255,255,255,.35)',
+      badgeBg:      'rgba(255,255,255,.7)',
       badgeColor:   '#3a3020',
-      badgeBorder:  'rgba(0,0,0,.1)',
+      badgeBorder:  'rgba(0,0,0,.12)',
       dotColor:     '#e09020',
-      // オーバーレイは薄め（朝の明るさを活かす）
-      overlay: 'linear-gradient(180deg, rgba(0,0,0,.18) 0%, rgba(0,0,0,.08) 50%, rgba(244,241,236,.97) 100%)',
+      overlay: 'linear-gradient(180deg, rgba(0,0,0,.22) 0%, rgba(0,0,0,.10) 50%, rgba(244,241,236,.97) 100%)',
     }
   }
+
   if (h >= 11 && h < 17) {
     return {
       image:    '/images/header/noon.jpg',
       greeting: 'こんにちは',
       sub:      'ランチは決まった？',
       badge:    '昼の時間帯 · 副菜・あっさり系がおすすめ',
-      textColor:    '#1c2a1c',
-      subColor:     'rgba(28,42,28,.6)',
-      badgeBg:      'rgba(255,255,255,.65)',
-      badgeColor:   '#2a3a2a',
-      badgeBorder:  'rgba(0,0,0,.1)',
-      dotColor:     '#5a9848',
-      overlay: 'linear-gradient(180deg, rgba(0,0,0,.22) 0%, rgba(0,0,0,.10) 50%, rgba(244,241,236,.97) 100%)',
+      // 昼の背景（緑の葉・木目テーブル）は全体的に明るく、
+      // 暗い文字色は構造的に不利。白文字 + 濃いめのオーバーレイ +
+      // 暗いテキストシャドウで「画像のどこに重なっても読める」状態にする。
+      textColor:    '#ffffff',
+      subColor:     'rgba(255,255,255,.85)',
+      textShadow:   '0 1px 4px rgba(0,0,0,.45), 0 1px 12px rgba(0,0,0,.25)',
+      badgeBg:      'rgba(0,0,0,.32)',
+      badgeColor:   'rgba(255,255,255,.9)',
+      badgeBorder:  'rgba(255,255,255,.25)',
+      dotColor:     '#9be08a',
+      overlay: 'linear-gradient(180deg, rgba(0,0,0,.42) 0%, rgba(0,0,0,.22) 50%, rgba(244,241,236,.97) 100%)',
     }
   }
+
   return {
     image:    '/images/header/night.jpg',
     greeting: 'こんばんは',
     sub:      '今夜は何作る？',
     badge:    '夜の時間帯 · しっかりした料理がおすすめ',
-    // 夜は画像が暗いので文字を白に
+    // 夜は背景自体が暗いので白文字が機能するが、
+    // キャンドルの明るい光の部分に重なるケースを想定してシャドウを追加。
     textColor:    '#ffffff',
     subColor:     'rgba(255,255,255,.75)',
+    textShadow:   '0 1px 4px rgba(0,0,0,.55), 0 1px 12px rgba(0,0,0,.35)',
     badgeBg:      'rgba(255,255,255,.12)',
-    badgeColor:   'rgba(255,255,255,.8)',
+    badgeColor:   'rgba(255,255,255,.85)',
     badgeBorder:  'rgba(255,255,255,.2)',
     dotColor:     '#8090d8',
-    overlay: 'linear-gradient(180deg, rgba(0,0,0,.38) 0%, rgba(0,0,0,.20) 50%, rgba(244,241,236,.97) 100%)',
+    overlay: 'linear-gradient(180deg, rgba(0,0,0,.40) 0%, rgba(0,0,0,.22) 50%, rgba(244,241,236,.97) 100%)',
   }
 }
 
@@ -132,7 +151,10 @@ export default function HomePage() {
           {/* ロゴ行 */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 14, fontWeight: 500, color: tc.textColor, letterSpacing: '.04em' }}>
+              <span style={{
+                fontSize: 14, fontWeight: 500, color: tc.textColor, letterSpacing: '.04em',
+                textShadow: tc.textShadow,
+              }}>
                 myrecipe
               </span>
               <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#7a9a78' }} />
@@ -143,6 +165,7 @@ export default function HomePage() {
               border: `1px solid ${tc.badgeBorder}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 12, fontWeight: 600, color: tc.textColor,
+              textShadow: tc.textShadow,
             }}>田</div>
           </div>
 
@@ -152,11 +175,12 @@ export default function HomePage() {
               fontFamily: '"Noto Serif JP", Georgia, serif',
               fontSize: 26, fontWeight: 400,
               color: tc.textColor, lineHeight: 1.25, marginBottom: 4,
+              textShadow: tc.textShadow,
             }}>
               {tc.greeting}、<br />
               <em style={{ fontStyle: 'italic', color: tc.subColor }}>{tc.sub}</em>
             </div>
-            <div style={{ fontSize: 11, color: tc.subColor, fontWeight: 300 }}>
+            <div style={{ fontSize: 11, color: tc.subColor, fontWeight: 300, textShadow: tc.textShadow }}>
               {new Date().toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })}
             </div>
           </div>
@@ -175,10 +199,10 @@ export default function HomePage() {
             {tc.badge}
           </div>
 
-          {/* 検索バー */}
+          {/* 検索バー（背景が常に明るい白なので調整不要） */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 9,
-            background: 'rgba(255,255,255,.72)',
+            background: 'rgba(255,255,255,.85)',
             border: '1px solid rgba(200,190,175,.5)',
             borderRadius: 12, padding: '10px 15px',
             backdropFilter: 'blur(12px)',
@@ -217,7 +241,7 @@ export default function HomePage() {
         <div
           onClick={() => navigate('/discover')}
           style={{
-            background: 'linear-gradient(135deg, #6D28D9 0%, #185FA5 100%)',
+            background: '#4a7c35',
             borderRadius: 14, padding: '13px 16px',
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12,
             transition: 'opacity .15s',

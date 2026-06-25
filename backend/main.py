@@ -17,10 +17,26 @@ from config import settings
 from routers import recipes, shopping_lists, ai, misc, public
 from routers import auth as auth_router
 
+from fastapi import Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
+
+app = FastAPI(
+    title="MyRecipeBook API",
+    version="4.4.0",
+    description="レシピ管理 + AI アシスタント REST API（レシピ共有・フォーク対応）",
+)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logging.error(f"422 detail: {exc.errors()}")
+    return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 Base.metadata.create_all(bind=engine)
 
@@ -92,15 +108,31 @@ def _migrate_add_sharing_columns():
         logging.warning(f"Migration skipped: {e}")
 
 
+def _migrate_add_ingredients_steps():
+    import sqlite3, re
+    db_path = re.sub(r"sqlite:///", "", settings.database_url)
+    try:
+        con = sqlite3.connect(db_path)
+        cur = con.cursor()
+        for column_def in (
+            "ingredients JSON DEFAULT '[]'",
+            "steps       JSON DEFAULT '[]'",
+        ):
+            col_name = column_def.split()[0]
+            try:
+                cur.execute(f"ALTER TABLE recipes ADD COLUMN {column_def}")
+                logging.info(f"Migration: recipes.{col_name} added")
+            except sqlite3.OperationalError:
+                pass  # すでに存在する場合はスキップ
+        con.commit()
+        con.close()
+    except Exception as e:
+        logging.warning(f"Migration skipped: {e}")
+
 _migrate_add_user_id()
 _migrate_add_profile_columns()
 _migrate_add_sharing_columns()
-
-app = FastAPI(
-    title="MyRecipeBook API",
-    version="4.4.0",
-    description="レシピ管理 + AI アシスタント REST API（レシピ共有・フォーク対応）",
-)
+_migrate_add_ingredients_steps()
 
 app.add_middleware(
     CORSMiddleware,

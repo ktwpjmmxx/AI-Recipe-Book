@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 class IngredientIn(BaseModel):
     name:        str
     amount:      Optional[float] = None
-    unit:        str             = ""
+    unit:        Optional[str]   = ""
     amount_text: Optional[str]  = None
 
 

@@ -1,13 +1,12 @@
 """
 services/ai/factory.py — LLMClient Factory
 
-LLM_PROVIDER 環境変数を変えるだけでプロバイダーを切り替えられる。
-新しいプロバイダーを追加する場合はここに 1 ケースを追加するだけでよい。
-
-対応プロバイダー:
-  openai    : OpenAI GPT シリーズ
-  anthropic : Anthropic Claude シリーズ（将来実装）
-  mock      : API キー不要のモック（開発・テスト用）
+v4.5 変更:
+  - LLM_PROVIDER=gemini の分岐を追加
+    （Google Gemini API の無料枠を利用するプロバイダー。
+     ポートフォリオのデモ用途として、追加コストなしでAI機能を
+     紹介する目的で採用。本番運用で不特定多数のユーザーを
+     想定する場合は無料枠の制限により不適切である点に注意。）
 """
 from __future__ import annotations
 import logging
@@ -20,7 +19,6 @@ _instance: LLMClient | None = None
 
 
 def get_llm_client() -> LLMClient:
-    """シングルトンで LLMClient を返す"""
     global _instance
     if _instance is not None:
         return _instance
@@ -39,11 +37,18 @@ def _create() -> LLMClient:
         logger.info(f"LLM: OpenAI ({settings.llm_model})")
         return OpenAIClient()
 
+    if provider == "gemini":
+        if not settings.gemini_api_key:
+            logger.warning("LLM_PROVIDER=gemini だが GEMINI_API_KEY が未設定。mock にフォールバック。")
+            return _mock()
+        from services.ai.gemini_client import GeminiClient
+        logger.info(f"LLM: Gemini ({settings.gemini_model}) — 無料枠運用・ポートフォリオ用途")
+        return GeminiClient()
+
     if provider == "anthropic":
         if not settings.anthropic_api_key:
             logger.warning("LLM_PROVIDER=anthropic だが ANTHROPIC_API_KEY が未設定。mock にフォールバック。")
             return _mock()
-        # 将来実装: from services.ai.anthropic_client import AnthropicClient
         raise NotImplementedError("Anthropic クライアントは未実装です。")
 
     if provider == "mock":
