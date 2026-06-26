@@ -1,13 +1,6 @@
-/**
- * pages/AccountPage.jsx — アカウントページ
- *
- * v4.3 変更:
- *   - プロフィール画像（avatar_url）を反映（未設定時はイニシャル表示）
- *   - 一言プロフィール（bio）をプロフィールカードに表示
- *   - 「プロフィール編集」「パスワード変更」をモーダルとして実際に機能させる
- */
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import BottomNav from '../components/BottomNav'
 import EditProfileModal from '../components/EditProfileModal'
@@ -17,6 +10,7 @@ import '../global.css'
 export default function AccountPage() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const { t } = useTranslation()
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [showEditProfile,   setShowEditProfile]   = useState(false)
   const [showChangePw,      setShowChangePw]       = useState(false)
@@ -26,7 +20,7 @@ export default function AccountPage() {
     navigate('/login', { replace: true })
   }
 
-  const displayName = user?.display_name || user?.email?.split('@')[0] || 'ゲスト'
+  const displayName = user?.display_name || user?.email?.split('@')[0] || t('account.guest')
   const initial      = displayName.charAt(0).toUpperCase()
 
   return (
@@ -34,17 +28,16 @@ export default function AccountPage() {
 
       <div className="topbar">
         <div className="topbar-row">
-          <div className="topbar-title">アカウント</div>
+          <div className="topbar-title">{t('account.title')}</div>
         </div>
       </div>
 
       <div style={{ padding: '20px 16px' }}>
 
-        {/* ── プロフィールカード ── */}
+        {/* プロフィールカード */}
         <div style={{
           background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: 16, padding: '20px 18px',
-          marginBottom: 20,
+          borderRadius: 16, padding: '20px 18px', marginBottom: 20,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{
@@ -65,7 +58,7 @@ export default function AccountPage() {
                 fontSize: 16, fontWeight: 600, color: 'var(--ink)',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
-                {displayName} さん
+                {displayName}{t('account.san')}
               </div>
               <div style={{
                 fontSize: 13, color: 'var(--text-3)', marginTop: 3,
@@ -76,7 +69,6 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* 一言プロフィール（bio） */}
           {user?.bio && (
             <div style={{
               marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)',
@@ -88,44 +80,35 @@ export default function AccountPage() {
           )}
         </div>
 
-        {/* ── メニューリスト ── */}
+        {/* メニューリスト */}
         <div style={{
           background: 'var(--surface)', border: '1px solid var(--border)',
           borderRadius: 16, overflow: 'hidden', marginBottom: 24,
         }}>
-          <button
-            onClick={() => setShowEditProfile(true)}
-            style={menuItemStyle(true)}
-          >
+          <button onClick={() => setShowEditProfile(true)} style={menuItemStyle(true)}>
             <i className="ti ti-user" style={menuIconStyle} />
-            <span style={{ flex: 1 }}>プロフィール編集</span>
+            <span style={{ flex: 1 }}>{t('account.editProfile')}</span>
             <i className="ti ti-chevron-right" style={menuChevronStyle} />
           </button>
 
-          <button
-            onClick={() => setShowChangePw(true)}
-            style={menuItemStyle(true)}
-          >
+          <button onClick={() => setShowChangePw(true)} style={menuItemStyle(true)}>
             <i className="ti ti-lock" style={menuIconStyle} />
-            <span style={{ flex: 1 }}>パスワード変更</span>
+            <span style={{ flex: 1 }}>{t('account.changePassword')}</span>
             <i className="ti ti-chevron-right" style={menuChevronStyle} />
           </button>
 
-          <button
-            onClick={() => alert('この機能は近日公開予定です。')}
-            style={menuItemStyle(false)}
-          >
+          <button onClick={() => alert(t('account.notificationsSoon'))} style={menuItemStyle(false)}>
             <i className="ti ti-bell" style={menuIconStyle} />
-            <span style={{ flex: 1 }}>通知設定</span>
+            <span style={{ flex: 1 }}>{t('account.notifications')}</span>
             <i className="ti ti-chevron-right" style={menuChevronStyle} />
           </button>
         </div>
 
         <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', marginBottom: 28 }}>
-          MyRecipeBook v4.3
+          {t('account.version')}
         </div>
 
-        {/* ── ログアウト ── */}
+        {/* ログアウト */}
         {!showLogoutConfirm ? (
           <button
             onClick={() => setShowLogoutConfirm(true)}
@@ -138,19 +121,19 @@ export default function AccountPage() {
             }}
           >
             <i className="ti ti-logout" />
-            ログアウト
+            {t('account.logout')}
           </button>
         ) : (
           <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: 16 }}>
             <p style={{ fontSize: 13, color: '#b91c1c', marginBottom: 12, textAlign: 'center' }}>
-              ログアウトしますか？
+              {t('account.logoutConfirm')}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setShowLogoutConfirm(false)} className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>
-                キャンセル
+                {t('common.cancel')}
               </button>
               <button onClick={handleLogout} className="btn btn-danger" style={{ flex: 1, justifyContent: 'center' }}>
-                ログアウトする
+                {t('account.logoutDo')}
               </button>
             </div>
           </div>
@@ -165,7 +148,6 @@ export default function AccountPage() {
   )
 }
 
-// ── スタイル定義（メニュー項目の共通スタイル） ──
 function menuItemStyle(hasBorder) {
   return {
     width: '100%', display: 'flex', alignItems: 'center', gap: 12,

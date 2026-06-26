@@ -1,17 +1,13 @@
-/**
- * pages/LoginPage.jsx — ログインページ
- *
- * Cream & Sage テーマに統一。
- * エラーメッセージはサーバーから返ってきたものをそのまま表示する。
- */
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import '../global.css'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { t } = useTranslation()
 
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
@@ -20,7 +16,7 @@ export default function LoginPage() {
 
   const handleSubmit = async () => {
     if (!email || !password) {
-      setError('メールアドレスとパスワードを入力してください。')
+      setError(t('login.errorRequired'))
       return
     }
     setLoading(true)
@@ -30,7 +26,7 @@ export default function LoginPage() {
       navigate('/home', { replace: true })
     } catch (err) {
       const msg = err?.response?.data?.detail
-      setError(msg ?? 'ログインに失敗しました。再度お試しください。')
+      setError(msg ?? t('login.errorFailed'))
     } finally {
       setLoading(false)
     }
@@ -44,7 +40,6 @@ export default function LoginPage() {
     }}>
       <div style={{ width: '100%', maxWidth: 380 }}>
 
-        {/* ロゴ */}
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--ink)', letterSpacing: '.04em' }}>
@@ -56,14 +51,13 @@ export default function LoginPage() {
             fontFamily: '"Noto Serif JP", Georgia, serif',
             fontSize: 26, fontWeight: 400, color: 'var(--ink)', lineHeight: 1.3,
           }}>
-            おかえりなさい。
+            {t('login.welcome')}
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 6 }}>
-            続きを始めましょう
+            {t('login.welcomeSub')}
           </div>
         </div>
 
-        {/* フォーム */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24 }}>
 
           {error && (
@@ -71,11 +65,11 @@ export default function LoginPage() {
           )}
 
           <div className="field">
-            <label className="field-label">メールアドレス</label>
+            <label className="field-label">{t('login.emailLabel')}</label>
             <input
               type="email"
               className="field-input"
-              placeholder="you@example.com"
+              placeholder={t('login.emailPlaceholder')}
               value={email}
               onChange={e => setEmail(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
@@ -84,11 +78,11 @@ export default function LoginPage() {
           </div>
 
           <div className="field">
-            <label className="field-label">パスワード</label>
+            <label className="field-label">{t('login.passwordLabel')}</label>
             <input
               type="password"
               className="field-input"
-              placeholder="8文字以上"
+              placeholder={t('login.pwPlaceholder')}
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
@@ -102,15 +96,14 @@ export default function LoginPage() {
             className="btn btn-primary"
             style={{ width: '100%', justifyContent: 'center', padding: '12px 0', marginTop: 8, fontSize: 15 }}
           >
-            {loading ? 'ログイン中…' : 'ログイン'}
+            {loading ? t('login.submitting') : t('login.submit')}
           </button>
         </div>
 
-        {/* 登録リンク */}
         <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--text-3)' }}>
-          アカウントをお持ちでない方は{' '}
+          {t('login.toRegister')}{' '}
           <Link to="/register" style={{ color: 'var(--accent-dark)', fontWeight: 600, textDecoration: 'none' }}>
-            新規登録
+            {t('login.registerLink')}
           </Link>
         </div>
       </div>
