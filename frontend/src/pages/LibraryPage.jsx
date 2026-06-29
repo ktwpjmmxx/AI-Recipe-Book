@@ -84,6 +84,7 @@ function groupRecipes(recipes, sortKey, t, dateLocale) {
 function ShoppingListsTab() {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const tUnit    = (key) => t(`units.${key}`, { defaultValue: key })
   const { lists, loading, error, load, handleDelete } = useSavedShoppingLists()
   const [delId, setDelId] = useState(null)
 
@@ -146,7 +147,7 @@ function ShoppingListsTab() {
               <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:8 }}>
                 {needItems.slice(0,3).map((item,i) => (
                   <span key={i} style={{ fontSize:11, background:'var(--accent-light)', color:'var(--accent-dark)', padding:'2px 8px', borderRadius:4 }}>
-                    {item.name} {item.needed}{item.unit}
+                    {item.name} {item.needed}{tUnit(item.unit)}
                   </span>
                 ))}
                 {needItems.length > 3 && (

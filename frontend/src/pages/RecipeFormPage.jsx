@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { fetchRecipe, createRecipe, updateRecipe, uploadImage } from '../api/recipeApi'
 import '../global.css'
 
@@ -14,11 +15,11 @@ const SERVING_OPTIONS = [0.5, 1, 2, 3, 4, 6]
 const UNITS = [
   'g', 'kg', 'ml', 'l',
   '個', '枚', '本', '束', '切れ', '片', '缶', '袋',
-  '尾', '匹',       // 魚介類（秋刀魚2尾、海老5匹 など）
-  '玉', '株', '房', '粒',  // 野菜・果物（キャベツ1玉、ブロッコリー1株、バナナ1房、ぶどう10粒）
-  '丁', 'パック',    // 豆腐1丁、納豆1パック
-  '塊', 'かけ',      // 肉の塊、生姜ひとかけ
-  '振り', 'つまみ',  // 少量計量（塩ひとつまみ、こしょう2振り）
+  '尾', '匹',
+  '玉', '株', '房', '粒',
+  '丁', 'パック',
+  '塊', 'かけ',
+  '振り', 'つまみ',
 ]
 
 const TEXT_SUGGESTIONS = [
@@ -52,7 +53,9 @@ function Section({ title, badge, children }) {
 
 // ── 材料1行コンポーネント ──
 function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
+  const { t } = useTranslation()
   const set = (key, val) => onChange(index, { ...ing, [key]: val })
+  const tUnit = (key) => t(`units.${key}`, { defaultValue: key })
 
   return (
     <div style={{
@@ -63,7 +66,7 @@ function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
         <input
           className="field-input"
-          placeholder="食材名（例：醤油）"
+          placeholder={t('recipeForm.ingNamePlaceholder')}
           value={ing.name}
           onChange={e => set('name', e.target.value)}
           style={{ flex: 1, background: 'var(--surface)' }}
@@ -74,7 +77,10 @@ function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
           borderRadius: 'var(--radius-sm)', overflow: 'hidden', flexShrink: 0,
           background: 'var(--surface)',
         }}>
-          {[{ key: 'num', label: '数値' }, { key: 'text', label: '文字' }].map(opt => (
+          {[
+            { key: 'num',  label: t('recipeForm.ingModeNum')  },
+            { key: 'text', label: t('recipeForm.ingModeText') },
+          ].map(opt => (
             <button key={opt.key} onClick={() => set('mode', opt.key)} style={{
               padding: '6px 12px', fontSize: 12, fontWeight: 600,
               border: 'none', cursor: 'pointer',
@@ -89,18 +95,15 @@ function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
       {/* 2行目：数値モード */}
       {ing.mode === 'num' && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0, width: 24 }}>量</span>
+          <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0, width: 32 }}>
+            {t('recipeForm.ingQtyLabel')}
+          </span>
           <input
             className="field-input"
             type="number"
-            /* v4.5 修正:
-               以前は step 未指定（ブラウザ既定の step=1）で小数が入力できず、
-               「1/2個」を表したい場合に「0.5個」と書くしかなかった。
-               step="0.1" にすることで 0.5・1.5 のような一般的な分量表記も
-               直接入力できるようにする。 */
             step="0.1"
             min="0"
-            placeholder="例：1.5"
+            placeholder={t('recipeForm.ingQtyPlaceholder')}
             value={ing.amount}
             onChange={e => set('amount', e.target.value)}
             style={{ width: 90, flex: 'none', textAlign: 'right', background: 'var(--surface)' }}
@@ -111,12 +114,12 @@ function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
             onChange={e => set('unit', e.target.value)}
             style={{ flex: 1, background: 'var(--surface)' }}
           >
-            {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+            {UNITS.map(u => <option key={u} value={u}>{tUnit(u)}</option>)}
           </select>
           <span style={{
             fontSize: 10, color: 'var(--blue)', background: 'var(--blue-light)',
             padding: '3px 7px', borderRadius: 4, flexShrink: 0, fontWeight: 500,
-          }}>↕ 換算あり</span>
+          }}>{t('recipeForm.ingUnitScaled')}</span>
         </div>
       )}
 
@@ -124,11 +127,13 @@ function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
       {ing.mode === 'text' && (
         <div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0, width: 24 }}>量</span>
+            <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0, width: 32 }}>
+              {t('recipeForm.ingQtyLabel')}
+            </span>
             <input
               list={`sug-${index}`}
               className="field-input"
-              placeholder="例：大さじ1、小さじ1/8、適量"
+              placeholder={t('recipeForm.ingTextPlaceholder')}
               value={ing.amount_text}
               onChange={e => set('amount_text', e.target.value)}
               style={{ flex: 1, background: 'var(--surface)' }}
@@ -140,28 +145,28 @@ function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
               fontSize: 10, color: 'var(--gold-dark)', background: 'var(--gold-light)',
               padding: '3px 7px', borderRadius: 4, flexShrink: 0, fontWeight: 500,
               border: '1px solid #E8D080',
-            }}>固定表示</span>
+            }}>{t('recipeForm.ingFixed')}</span>
           </div>
 
-          {/* v4.5 追加:
-              方向性A（最小コスト）の実装。
-              「小さじ1/8」のような自由記述は人数変更時に自動換算されない
-              仕様であることを、入力時点でユーザーに明示する。
-              これにより「換算されているはず」という誤解を防ぐ。 */}
           <p style={{
             fontSize: 11, color: 'var(--text-3)', marginTop: 6,
             lineHeight: 1.5, display: 'flex', gap: 5, alignItems: 'flex-start',
           }}>
             <span style={{ flexShrink: 0 }}>ℹ️</span>
             <span>
-              文字入力した分量は人数を変更しても<strong>そのまま固定表示</strong>されます（自動計算されません）。
-              人数に応じて自動計算したい場合は「数値」モードをお使いください。
+              {t('recipeForm.ingTextNote', {
+                strong: t('recipeForm.ingTextNoteStrong'),
+              }).split(t('recipeForm.ingTextNoteStrong')).map((part, i, arr) =>
+                i < arr.length - 1
+                  ? [part, <strong key={i}>{t('recipeForm.ingTextNoteStrong')}</strong>]
+                  : part
+              )}
             </span>
           </p>
         </div>
       )}
 
-      {/* 削除ボタン（テキスト付き・右寄せ） */}
+      {/* 削除ボタン */}
       {!isOnly && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
           <button
@@ -173,7 +178,7 @@ function IngredientRow({ ing, index, onChange, onRemove, isOnly }) {
               color: '#b91c1c', fontSize: 12, cursor: 'pointer',
             }}
           >
-            🗑 この材料を削除
+            {t('recipeForm.ingRemove')}
           </button>
         </div>
       )}
@@ -185,6 +190,11 @@ export default function RecipeFormPage() {
   const navigate = useNavigate()
   const { id }   = useParams()
   const isEdit   = Boolean(id)
+  const { t }    = useTranslation()
+
+  // カテゴリ・単位はDBキー（日本語）のまま保存し、表示時だけ翻訳する
+  const tCat  = (key) => t(`categories.${key}`, { defaultValue: key })
+  const tUnit = (key) => t(`units.${key}`,       { defaultValue: key })
 
   const [form, setForm] = useState({
     title: '', category: '和食', description: '',
@@ -221,8 +231,8 @@ export default function RecipeFormPage() {
           : [emptyStep(1)],
       })
       if (r.image_url) setPreview(r.image_url)
-    }).catch(() => setError('レシピの取得に失敗しました'))
-  }, [id, isEdit])
+    }).catch(() => setError(t('recipeForm.errorLoad')))
+  }, [id, isEdit, t])
 
   const set    = (key, val) => setForm(f => ({ ...f, [key]: val }))
   const setIng = (i, updated) =>
@@ -243,7 +253,7 @@ export default function RecipeFormPage() {
   }
 
   const handleSubmit = async () => {
-    if (!form.title.trim()) return setError('料理名を入力してください')
+    if (!form.title.trim()) return setError(t('recipeForm.errorTitle'))
     setSaving(true); setError('')
     try {
       const payload = {
@@ -266,7 +276,7 @@ export default function RecipeFormPage() {
       if (imageFile) await uploadImage(saved.id, imageFile)
       navigate(`/recipes/${saved.id}`)
     } catch {
-      setError('保存に失敗しました。入力内容を確認してください。')
+      setError(t('recipeForm.errorSave'))
     } finally {
       setSaving(false)
     }
@@ -282,15 +292,17 @@ export default function RecipeFormPage() {
               background: 'rgba(255,255,255,.2)', border: '1px solid rgba(255,255,255,.4)',
               borderRadius: 'var(--radius-sm)', padding: '6px 12px',
               color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}>← 戻る</button>
-            <span className="topbar-title">{isEdit ? 'レシピを編集' : '新しいレシピ'}</span>
+            }}>{t('common.back')}</button>
+            <span className="topbar-title">
+              {isEdit ? t('recipeForm.pageEdit') : t('recipeForm.pageNew')}
+            </span>
           </div>
           <button onClick={handleSubmit} disabled={saving} style={{
             padding: '7px 18px', background: saving ? 'rgba(255,255,255,.15)' : 'rgba(255,255,255,.25)',
             border: '1px solid rgba(255,255,255,.5)',
             borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 600,
             color: '#fff', cursor: saving ? 'not-allowed' : 'pointer',
-          }}>{saving ? '保存中…' : '保存'}</button>
+          }}>{saving ? t('recipeForm.saving') : t('recipeForm.save')}</button>
         </div>
       </div>
 
@@ -300,16 +312,16 @@ export default function RecipeFormPage() {
 
       {/* 基本情報 */}
       <div style={{ padding: '0 16px' }}>
-        <Section title="📋 基本情報">
+        <Section title={t('recipeForm.sectionBasic')}>
           <div className="field">
-            <label className="field-label">料理名 *</label>
+            <label className="field-label">{t('recipeForm.titleLabel')}</label>
             <input className="field-input" value={form.title}
               onChange={e => set('title', e.target.value)}
-              placeholder="例：豚の角煮" />
+              placeholder={t('recipeForm.titlePlaceholder')} />
           </div>
 
           <div className="field">
-            <label className="field-label">カテゴリ</label>
+            <label className="field-label">{t('recipeForm.categoryLabel')}</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {CATEGORIES.map(cat => (
                 <button key={cat} onClick={() => set('category', cat)} style={{
@@ -318,33 +330,37 @@ export default function RecipeFormPage() {
                   background:  form.category === cat ? 'var(--blue)' : 'var(--surface)',
                   color:       form.category === cat ? '#fff' : 'var(--text-2)',
                   cursor: 'pointer',
-                }}>{cat}</button>
+                }}>{tCat(cat)}</button>
               ))}
             </div>
           </div>
 
           <div className="field">
-            <label className="field-label">メモ・説明（任意）</label>
+            <label className="field-label">{t('recipeForm.descLabel')}</label>
             <textarea className="field-input" value={form.description}
               onChange={e => set('description', e.target.value)}
-              placeholder="料理の紹介や作るコツを一言で" />
+              placeholder={t('recipeForm.descPlaceholder')} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <div className="field">
-              <label className="field-label">基準の人数</label>
+              <label className="field-label">{t('recipeForm.baseServingsLabel')}</label>
               <select className="field-input" value={form.base_servings}
                 onChange={e => set('base_servings', parseFloat(e.target.value))}>
-                {SERVING_OPTIONS.map(s => <option key={s} value={s}>{s}人前</option>)}
+                {SERVING_OPTIONS.map(s => (
+                  <option key={s} value={s}>
+                    {t('recipeForm.servingsOption', { count: s })}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="field">
-              <label className="field-label">下準備（分）</label>
+              <label className="field-label">{t('recipeForm.prepTimeLabel')}</label>
               <input className="field-input" type="number" min="0"
                 value={form.prep_time} onChange={e => set('prep_time', e.target.value)} />
             </div>
             <div className="field">
-              <label className="field-label">調理時間（分）</label>
+              <label className="field-label">{t('recipeForm.cookTimeLabel')}</label>
               <input className="field-input" type="number" min="0"
                 value={form.cook_time} onChange={e => set('cook_time', e.target.value)} />
             </div>
@@ -352,26 +368,26 @@ export default function RecipeFormPage() {
         </Section>
 
         {/* 写真 */}
-        <Section title="📷 料理写真（任意）">
+        <Section title={t('recipeForm.sectionPhoto')}>
           <label style={{
             display: 'block', border: '1.5px dashed var(--border)',
             borderRadius: 'var(--radius-md)', overflow: 'hidden', cursor: 'pointer',
           }}>
             {preview ? (
               <div style={{ position: 'relative' }}>
-                <img src={preview} alt="プレビュー"
+                <img src={preview} alt="preview"
                   style={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }} />
                 <div style={{
                   position: 'absolute', bottom: 8, right: 8,
                   background: 'rgba(0,0,0,.5)', color: '#fff',
                   padding: '4px 10px', borderRadius: 'var(--radius-sm)', fontSize: 12,
-                }}>📷 写真を変更</div>
+                }}>{t('recipeForm.photoChange')}</div>
               </div>
             ) : (
               <div style={{ padding: 28, textAlign: 'center', color: 'var(--text-3)' }}>
                 <div style={{ fontSize: 36, marginBottom: 8 }}>📷</div>
-                <p style={{ fontSize: 13 }}>タップして写真を追加</p>
-                <p style={{ fontSize: 11, marginTop: 4 }}>jpg / png / webp 対応</p>
+                <p style={{ fontSize: 13 }}>{t('recipeForm.photoAdd')}</p>
+                <p style={{ fontSize: 11, marginTop: 4 }}>{t('recipeForm.photoFormats')}</p>
               </div>
             )}
             <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
@@ -380,14 +396,14 @@ export default function RecipeFormPage() {
 
         {/* 材料 */}
         <Section
-          title="🥕 材料"
+          title={t('recipeForm.sectionIngredients')}
           badge={
             <div style={{ display: 'flex', gap: 6, fontSize: 10 }}>
               <span style={{ background: 'var(--blue-light)', color: 'var(--blue)', padding: '2px 7px', borderRadius: 4, fontWeight: 500 }}>
-                数値 = 人数換算あり
+                {t('recipeForm.badgeScaled')}
               </span>
               <span style={{ background: 'var(--surface)', color: 'var(--gold-dark)', padding: '2px 7px', borderRadius: 4, border: '1px solid #E8D080', fontWeight: 500 }}>
-                文字 = 固定表示
+                {t('recipeForm.badgeFixed')}
               </span>
             </div>
           }
@@ -407,12 +423,12 @@ export default function RecipeFormPage() {
             color: 'var(--blue)', background: 'none', border: 'none',
             fontSize: 13, cursor: 'pointer', padding: '6px 0', fontWeight: 500,
           }}>
-            ＋ 材料を追加
+            {t('recipeForm.ingAdd')}
           </button>
         </Section>
 
         {/* 手順 */}
-        <Section title="📝 作り方の手順">
+        <Section title={t('recipeForm.sectionSteps')}>
           {form.steps.map((step, i) => (
             <div key={i} style={{
               background: 'var(--bg)', border: '1px solid var(--border)',
@@ -425,18 +441,20 @@ export default function RecipeFormPage() {
                   fontSize: 12, fontWeight: 700, flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>{i + 1}</div>
-                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>工程 {i + 1}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
+                  {t('recipeForm.stepLabel', { number: i + 1 })}
+                </span>
               </div>
               <textarea
                 className="field-input"
-                placeholder={`工程 ${i + 1} の説明を入力`}
+                placeholder={t('recipeForm.stepDescPlaceholder', { number: i + 1 })}
                 value={step.description}
                 onChange={e => setStep(i, 'description', e.target.value)}
                 style={{ minHeight: 72, marginBottom: 8, background: 'var(--surface)' }}
               />
               <input
                 className="field-input"
-                placeholder="💡 ポイント・ヒント（任意）"
+                placeholder={t('recipeForm.stepTipPlaceholder')}
                 value={step.tip}
                 onChange={e => setStep(i, 'tip', e.target.value)}
                 style={{ background: 'var(--surface)' }}
@@ -448,7 +466,7 @@ export default function RecipeFormPage() {
                     padding: '4px 10px', borderRadius: 'var(--radius-sm)',
                     background: '#fef2f2', border: '1px solid #fecaca',
                     color: '#b91c1c', fontSize: 12, cursor: 'pointer',
-                  }}>🗑 この工程を削除</button>
+                  }}>{t('recipeForm.stepRemove')}</button>
                 </div>
               )}
             </div>
@@ -458,17 +476,20 @@ export default function RecipeFormPage() {
             color: 'var(--blue)', background: 'none', border: 'none',
             fontSize: 13, cursor: 'pointer', padding: '6px 0', fontWeight: 500,
           }}>
-            ＋ 工程を追加
+            {t('recipeForm.stepAdd')}
           </button>
         </Section>
 
         {/* 保存・キャンセル */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
           <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => navigate(-1)}>
-            キャンセル
+            {t('recipeForm.cancel')}
           </button>
           <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleSubmit} disabled={saving}>
-            {saving ? '保存中…' : isEdit ? '変更を保存' : 'レシピを登録'}
+            {saving
+              ? t('recipeForm.saving')
+              : isEdit ? t('recipeForm.saveEdit') : t('recipeForm.saveNew')
+            }
           </button>
         </div>
       </div>

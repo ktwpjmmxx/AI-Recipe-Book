@@ -16,6 +16,7 @@ export default function ShoppingListPage() {
   const navigate  = useNavigate()
   const { state } = useLocation()
   const { t }     = useTranslation()
+  const tUnit     = (key) => t(`units.${key}`, { defaultValue: key })
   const recipe    = state?.recipe
   const servings  = state?.servings
 
@@ -90,7 +91,7 @@ export default function ShoppingListPage() {
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                       <span style={{ fontSize:14, fontWeight:500 }}>{ing.name}</span>
                       <span style={{ fontSize:12, color:'var(--text-3)' }}>
-                        {t('shopping.required', { amount: fmtNum(required), unit: ing.unit })}
+                        {t('shopping.required', { amount: fmtNum(required), unit: tUnit(ing.unit) })}
                       </span>
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -104,12 +105,12 @@ export default function ShoppingListPage() {
                         onFocus={e => e.target.style.borderColor='var(--blue)'}
                         onBlur={e  => e.target.style.borderColor='var(--border)'}
                       />
-                      <span style={{ fontSize:13, color:'var(--text-2)' }}>{ing.unit}</span>
+                      <span style={{ fontSize:13, color:'var(--text-2)' }}>{tUnit(ing.unit)}</span>
                       {have !== null && (
                         <span style={{ marginLeft:'auto', fontSize:13, fontWeight:600, color: needed===0 ? '#3B6D11' : 'var(--blue)' }}>
                           {needed===0
                             ? t('shopping.sufficient')
-                            : t('shopping.needToBuy', { amount: fmtNum(needed), unit: ing.unit })
+                            : t('shopping.needToBuy', { amount: fmtNum(needed), unit: tUnit(ing.unit) })
                           }
                         </span>
                       )}
@@ -164,7 +165,7 @@ export default function ShoppingListPage() {
                   </div>
                   <span style={{ flex:1, fontSize:14, textDecoration: checked.has(item.name) ? 'line-through' : 'none' }}>{item.name}</span>
                   <span style={{ fontSize:14, fontWeight:600, color: checked.has(item.name) ? 'var(--text-3)' : 'var(--blue)' }}>
-                    {fmtNum(item.needed)} {item.unit}
+                    {fmtNum(item.needed)} {tUnit(item.unit)}
                     {item.have !== null && item.have > 0 && (
                       <span style={{ fontSize:11, color:'var(--text-3)', marginLeft:4 }}>（{fmtNum(item.required)}-{fmtNum(item.have)}）</span>
                     )}

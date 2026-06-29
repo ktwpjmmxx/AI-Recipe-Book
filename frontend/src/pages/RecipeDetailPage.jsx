@@ -72,7 +72,7 @@ export default function RecipeDetailPage() {
 
       {/* ボディ */}
       <div style={{ padding: '16px 20px' }}>
-        <span className={`cat-badge cat-${recipe.category}`}>{recipe.category}</span>
+        <span className={`cat-badge cat-${recipe.category}`}>{t(`categories.${recipe.category}`, { defaultValue: recipe.category })}</span>
         <h1 style={{ fontSize: 22, fontWeight: 600, margin: '8px 0 10px', lineHeight: 1.25 }}>{recipe.title}</h1>
         {recipe.description && <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7, marginBottom: 14 }}>{recipe.description}</p>}
 

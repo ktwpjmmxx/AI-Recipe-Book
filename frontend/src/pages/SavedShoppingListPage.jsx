@@ -17,6 +17,7 @@ export default function SavedShoppingListPage() {
   const { id }   = useParams()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const tUnit    = (key) => t(`units.${key}`, { defaultValue: key })
   const [showDelConf, setShowDelConf] = useState(false)
 
   const dateLocaleMap = { ja: 'ja-JP', en: 'en-US', tr: 'tr-TR' }
@@ -97,7 +98,7 @@ export default function SavedShoppingListPage() {
                     {item.name}
                   </span>
                   <span style={{ fontSize:14, fontWeight:600, color: item.checked ? 'var(--text-3)' : 'var(--blue)' }}>
-                    {fmtNum(item.needed)} {item.unit}
+                    {fmtNum(item.needed)} {tUnit(item.unit)}
                   </span>
                 </div>
               )

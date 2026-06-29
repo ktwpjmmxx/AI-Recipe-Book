@@ -163,7 +163,7 @@ export default function DiscoverPage() {
         </div>
       </div>
       <div style={{ padding: '16px 20px' }}>
-        <span className={`cat-badge cat-${generated?.category ?? 'その他'}`}>{generated?.category ?? 'その他'}</span>
+        <span className={`cat-badge cat-${generated?.category ?? 'その他'}`}>{t(`categories.${generated?.category ?? 'その他'}`, { defaultValue: generated?.category ?? 'その他' })}</span>
         <h1 style={{ fontSize: 22, fontWeight: 600, margin: '8px 0 10px' }}>{generated?.title ?? ''}</h1>
         <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7, marginBottom: 16 }}>{generated?.description ?? ''}</p>
         <ErrorBanner message={error} />
