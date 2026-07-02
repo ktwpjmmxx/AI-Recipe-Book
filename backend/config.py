@@ -32,6 +32,14 @@ class Settings(BaseSettings):
     secret_key:             str = "CHANGE_THIS_IN_PRODUCTION"
     jwt_lifetime_seconds:   int = 60 * 60 * 24 * 30
 
+    def model_post_init(self, __context):
+        if self.secret_key == "CHANGE_THIS_IN_PRODUCTION":
+            import logging
+            logging.warning(
+                "⚠️  SECRET_KEY がデフォルト値のままです。"
+                " .env に SECRET_KEY を設定してください。"
+            )
+
     class Config:
         env_file = ".env"
 

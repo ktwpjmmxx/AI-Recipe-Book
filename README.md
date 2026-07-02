@@ -2,7 +2,7 @@
 
 **自分だけのオリジナルレシピをデジタルで管理する、シンプルで賢いWebアプリ。**
 
-料理写真・材料・手順をまとめて保存し、人数に合わせた分量自動計算・AIアシスタントによる料理サポートを提供します。v4.7では、v4.6で基盤を構築した多言語対応をさらに深化させ、レシピ作成・編集フォームの全ラベル対応、料理カテゴリ・分量単位の表示切替、および全ページにわたる表示の一貫性を完成させました。
+料理写真・材料・手順をまとめて保存し、人数に合わせた分量自動計算・AIアシスタントによる料理サポートを提供します。v4.7.5では、v4.7で完成させた多言語対応に加え、依存関係の整合・セキュリティ改善・デッドコードの削除など、コードベースの品質向上を目的とした保守アップデートを行いました。
 
 <br>
 
@@ -15,6 +15,70 @@
 | カテゴリ・単位（英語表示） | カテゴリ・単位（トルコ語表示） |
 |:---:|:---:|
 | ![カテゴリ単位英語](screenshots/03_category_unit_en_v47.png) | ![カテゴリ単位トルコ語](screenshots/04_category_unit_tr_v47.png) |
+
+<br>
+
+---
+
+## v4.7.5 アップデート内容
+
+機能追加は行わず、コードベースの健全性を高めることを目的とした保守リリースです。
+
+<br>
+
+### 1. `requirements.txt` の依存関係整合
+
+**背景:** 実際の動作に必要なパッケージが `requirements.txt` に記載されておらず、`pip install -r requirements.txt` だけでは起動できない状態になっていた。
+
+**修正内容:** 以下のパッケージを追加し、`pip install -r requirements.txt` で環境を完全に再現できる状態にした。
+
+| 追加パッケージ | 用途 |
+|---|---|
+| `pydantic-settings` | `config.py` の `BaseSettings` に必要 |
+| `passlib[bcrypt]` | パスワードハッシュ（認証） |
+| `python-jose[cryptography]` | JWT 署名・検証（認証） |
+| `google-generativeai` | Gemini API 連携 |
+| `chromadb` | RAG 機能のベクトルDB |
+
+<br>
+
+### 2. デフォルト `SECRET_KEY` の起動時警告
+
+**背景:** `config.py` の `secret_key` がデフォルト値 `"CHANGE_THIS_IN_PRODUCTION"` のまま起動された場合、`.env` の設定漏れに気づけずセキュリティリスクになる可能性があった。
+
+**修正内容:** Pydantic v2 の `model_post_init` フックを利用し、デフォルト値のまま起動した場合に警告ログを出力するようにした。
+
+```python
+def model_post_init(self, __context):
+    if self.secret_key == "CHANGE_THIS_IN_PRODUCTION":
+        import logging
+        logging.warning(
+            "⚠️  SECRET_KEY がデフォルト値のままです。"
+            " .env に SECRET_KEY を設定してください。"
+        )
+```
+
+<br>
+
+### 3. `RecipeListPage.jsx` の削除（デッドコード整理）
+
+**背景:** `LibraryPage.jsx` と機能が重複しているページとして「既知の課題」に記録されていたが、実際に使用されているかが未確認のまま保留になっていた。
+
+**検証方法:** PowerShell の `Get-ChildItem` と `Select-String` を組み合わせ、プロジェクト全体の `.jsx` ファイルを対象に `"RecipeListPage"` を検索した。
+
+```powershell
+Get-ChildItem -Recurse -Filter "*.jsx" src/ | Select-String "RecipeListPage"
+```
+
+**結果:** ヒットしたのは `RecipeListPage.jsx` 自身の定義行のみ。`App.jsx` のルート登録・他ページからの `import` がいずれも存在しないことが確認され、完全なデッドコードと判断した。
+
+**対応:** ファイルを削除し、README・リリースノートの「保留」記述も合わせて整理した。
+
+<br>
+
+### 4. README「設計上の判断メモ」セクションを追加
+
+`tCat` / `tUnit` ヘルパーが各コンポーネントに個別定義されている現状について、DRY 原則の観点から将来の改善方針とともに記録した（内容は後述の「設計上の判断メモ」セクションを参照）。
 
 <br>
 
@@ -133,6 +197,15 @@ const tUnit = (key) => t(`units.${key}`, { defaultValue: key })
 
 ---
 
+## 変更ファイル一覧（v4.7 → v4.7.5）
+
+| ファイル | 変更内容 |
+|---|---|
+| `requirements.txt` | `pydantic-settings` / `passlib[bcrypt]` / `python-jose[cryptography]` / `google-generativeai` / `chromadb` を追加 |
+| `backend/config.py` | `model_post_init` でデフォルト `SECRET_KEY` 使用時の起動警告を追加 |
+| `pages/RecipeListPage.jsx` | 未使用と確認の上、削除 |
+| `README.md` | 設計上の判断メモ（`tCat` / `tUnit` の DRY 原則に関する記述）を追加。`RecipeListPage.jsx` 関連の保留記述を削除 |
+
 ## 変更ファイル一覧（v4.6 → v4.7）
 
 ### 翻訳JSONの更新
@@ -159,6 +232,27 @@ const tUnit = (key) => t(`units.${key}`, { defaultValue: key })
 
 ---
 
+## 設計上の判断メモ
+
+### `tCat` / `tUnit` の配置について
+
+カテゴリ翻訳ヘルパー `tCat` と単位翻訳ヘルパー `tUnit` は、現時点では各ページコンポーネント内に同じ1行を個別に定義しています（DRY 原則の観点では共通フックへの切り出しが理想的な形です）。
+
+```javascript
+const tCat  = (key) => t(`categories.${key}`, { defaultValue: key })
+const tUnit = (key) => t(`units.${key}`,      { defaultValue: key })
+```
+
+将来的には `hooks/useRecipeTranslation.js` として共通化し、翻訳ロジックの変更が1箇所で完結する構造に移行することを検討しています。現バージョンではページ数が限定的で影響範囲が把握しやすいため、可読性を優先して現状の形を維持しています。
+
+### マイグレーション管理について
+
+現在 `main.py` 起動時に `_migrate_add_*()` 関数群が `ALTER TABLE` を試みる方式でマイグレーションを管理しています。v4.8 では SQLAlchemy 公式のマイグレーション管理ツールである **Alembic** の導入を予定しており、バージョン管理・ロールバック対応の構成に移行します。
+
+<br>
+
+---
+
 ## 既知の課題と対応状況
 
 **メール確認（verification）は未実装**
@@ -168,10 +262,6 @@ const tUnit = (key) => t(`units.${key}`, { defaultValue: key })
 **レシピ画像の自動生成は保留（ポートフォリオ環境）**
 
 Imagen 3 による画像自動生成は `gemini_client.py` にコメントアウトで実装済みです。画像生成APIの利用はリクエストごとにコストが発生するため、ポートフォリオ環境での常時有効化は行っていません。本番運用時はコメントアウトを解除し、画像保存先（S3等）を設定することで有効化できます。
-
-**`RecipeListPage.jsx` の多言語対応は保留**
-
-`LibraryPage.jsx` と機能が重複しているページであり、実際のルーティングで使用されているかが不明なため、引き続き対応を保留しています。
 
 **ユーザー投稿コンテンツ（レシピ本文）の言語横断翻訳は対応範囲外**
 
@@ -183,7 +273,7 @@ Imagen 3 による画像自動生成は `gemini_client.py` にコメントアウ
 
 ## ローカル起動手順
 
-v4.6からの変更点はありません。
+v4.7からの変更点はありません。
 
 ```powershell
 # ターミナル 1（バックエンド）
@@ -204,7 +294,7 @@ npm run dev
 
 ## 次期アップデートについて
 
-`RecipeListPage.jsx` の扱いの整理（削除または `LibraryPage.jsx` への統合）を予定しています。また、v4.0.1でテスト実装したRAGの `references` フィールドを活用した根拠表示の追加、Imagen 3による画像生成の本番有効化、フォーク数の表示・通知設定の実装も引き続き検討しています。
+v4.8では Alembic によるマイグレーション管理の導入を予定しています。また、v4.0.1でテスト実装したRAGの `references` フィールドを活用した根拠表示の追加、Imagen 3による画像生成の本番有効化、フォーク数の表示・通知設定の実装も引き続き検討しています。
 
 <br>
 
