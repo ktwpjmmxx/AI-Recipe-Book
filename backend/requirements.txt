@@ -24,3 +24,6 @@ google-generativeai==0.8.3    # Gemini API（gemini-2.0-flash 等）
 
 # ── ベクトル DB（RAG 機能） ──────────────────────
 chromadb==0.5.15
+
+# ── Alembicマイグレーション ────────────────────────────────────────
+alembic==1.13.2

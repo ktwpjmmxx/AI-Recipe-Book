@@ -129,11 +129,6 @@ def _migrate_add_ingredients_steps():
     except Exception as e:
         logging.warning(f"Migration skipped: {e}")
 
-_migrate_add_user_id()
-_migrate_add_profile_columns()
-_migrate_add_sharing_columns()
-_migrate_add_ingredients_steps()
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],

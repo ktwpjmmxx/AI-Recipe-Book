@@ -2,120 +2,27 @@
 
 **自分だけのオリジナルレシピをデジタルで管理する、シンプルで賢いWebアプリ。**
 
-料理写真・材料・手順をまとめて保存し、人数に合わせた分量自動計算・AIアシスタントによる料理サポートを提供します。v4.8では、v4.7.5までの手書きマイグレーション方式を、SQLAlchemy公式のマイグレーション管理ツール**Alembic**に置き換え、バージョン管理・ロールバック対応のスキーマ管理基盤に移行しました。
+料理写真・材料・手順をまとめて保存し、人数に合わせた分量自動計算・AIアシスタントによる料理サポートを提供します。v4.7.5では、v4.7で完成させた多言語対応に加え、依存関係の整合・セキュリティ改善・デッドコードの削除など、コードベースの品質向上を目的とした保守アップデートを行いました。
 
 <br>
 
-## 目次
+## スクリーンショット
 
-- [更新履歴サマリー](#更新履歴サマリー)
-- [v4.8 アップデート内容](#v48-アップデート内容)
-- [技術スタック](#技術スタック)
-- [設計上の判断メモ](#設計上の判断メモ)
-- [既知の課題と対応状況](#既知の課題と対応状況)
-- [ローカル起動手順](#ローカル起動手順)
-- [次期アップデートについて](#次期アップデートについて)
+| レシピ作成フォーム（日本語） | レシピ作成フォーム（英語） |
+|:---:|:---:|
+| ![レシピ作成フォーム日本語](screenshots/01_recipeform_ja_v47.png) | ![レシピ作成フォーム英語](screenshots/02_recipeform_en_v47.png) |
 
-<br>
-
----
-
-## 更新履歴サマリー
-
-| バージョン | 概要 |
-|---|---|
-| **v4.8**（本リリース） | 手書きマイグレーションを**Alembic**に全面移行。SQLite特有の制約対応・動作検証込み |
-| v4.7.5 | 依存関係整合・セキュリティ警告追加・デッドコード削除などの保守アップデート |
-| v4.7 | レシピ作成フォーム／カテゴリ／単位表示の多言語対応を完成 |
-
-過去バージョンの詳細は各セクション内の「詳細を見る」から展開できます。
+| カテゴリ・単位（英語表示） | カテゴリ・単位（トルコ語表示） |
+|:---:|:---:|
+| ![カテゴリ単位英語](screenshots/03_category_unit_en_v47.png) | ![カテゴリ単位トルコ語](screenshots/04_category_unit_tr_v47.png) |
 
 <br>
 
 ---
 
-## v4.8 アップデート内容
+## v4.7.5 アップデート内容
 
-> **TL;DR:** バックエンドのDBスキーマ管理を、手書きの `ALTER TABLE` 方式からAlembicに移行。バージョン管理・ロールバックが可能な構成になった。機能追加はなし。
-
-<br>
-
-### 1. 手書きマイグレーションからAlembicへの移行
-
-**背景:** `main.py` 起動時に `_migrate_add_user_id()` / `_migrate_add_profile_columns()` / `_migrate_add_sharing_columns()` / `_migrate_add_ingredients_steps()` の4関数が `try/except` で `ALTER TABLE` を試みる方式でカラム追加を管理していた。カラムが増えるたびに関数が増殖し、バージョン管理・ロールバックができない状態が課題として蓄積していた。
-
-**対応内容:** Alembicを導入し、`migrations/env.py` にSQLAlchemyの `engine` と `models.Base.metadata` を接続。既存の4関数が追加してきたカラムについては、データ破壊を避けるため `--autogenerate` を使わず、**中身が空（no-op）のbaselineリビジョン**を手書きで作成し、`alembic stamp head` で「現状を基準点として記録」する形で移行した。`main.py` からは4つの `_migrate_add_*()` の定義・呼び出しをすべて削除した。
-
-```python
-def upgrade() -> None:
-    # 既存DBはv4.4までの手書きマイグレーションで
-    # 既にカラム追加済みのため、ここでは基準点として記録するのみ。
-    pass
-
-
-def downgrade() -> None:
-    pass
-```
-
-<br>
-
-### 2. SQLite特有の制約への対応（`render_as_batch`）
-
-**症状:** Alembicの `--autogenerate` で生成したマイグレーションを `alembic upgrade head` で適用したところ、以下のエラーで失敗した。
-
-```
-sqlite3.OperationalError: near "ALTER": syntax error
-[SQL: ALTER TABLE recipes ALTER COLUMN category DROP NOT NULL]
-```
-
-**原因:** SQLiteはMySQLやPostgreSQLと異なり、既存カラムの型・制約だけを変更する標準的な `ALTER COLUMN` 文をサポートしていない。
-
-**対応内容:** `migrations/env.py` の `context.configure()` に `render_as_batch=True` を追加し、SQLite向けの「テーブルを再作成してカラム変更を反映する」batch modeを有効化した。
-
-<br>
-
-### 3. 動作確認（カラム追加 → 適用 → ロールバック）
-
-テスト用カラムを用いて、Alembicの一連の流れが正しく機能することを確認した。
-
-```powershell
-alembic revision -m "test add nullable column"
-alembic upgrade head      # カラムが追加されることを確認
-alembic downgrade -1      # カラムが削除され、元の状態に戻ることを確認
-```
-
-`PRAGMA table_info` でカラムの追加・削除、`alembic current` でリビジョンの遷移をそれぞれ確認し、ロールバック可能なマイグレーション運用ができる状態になったことを検証した。
-
-<br>
-
-### 4. 副産物として発見した設計上の課題
-
-上記3の過程で、`models.py` のモデル定義（外部キーの `ondelete` 設定、インデックス構成など）と実際のDBの構造との間にズレがあることが判明した。手書きマイグレーションがカラム追加のみを行い、外部キー制約やインデックスまでは反映していなかったことが原因である。特に外部キー制約に名前が付いていないため、SQLiteのbatch modeで `Constraint must have a name` エラーが発生することを確認した。この対応（`naming_convention` の導入含む）は本バージョンの対応範囲外とし、「既知の課題」として次バージョン以降の対応候補とした。
-
-<br>
-
-<details>
-<summary><strong>変更ファイル一覧（v4.7.5 → v4.8）</strong>（クリックで展開）</summary>
-
-| ファイル | 変更内容 |
-|---|---|
-| `migrations/`（新規） | `alembic init` で生成。`env.py` に `engine` / `Base.metadata` を接続し、`render_as_batch=True` を設定 |
-| `migrations/versions/xxxx_baseline_....py`（新規） | 既存スキーマを基準点として記録する空（no-op）のbaselineリビジョン |
-| `alembic.ini`（新規） | `sqlalchemy.url` はハードコードせず `.env` の `DATABASE_URL` から読み込む構成に変更 |
-| `main.py` | `_migrate_add_user_id()` / `_migrate_add_profile_columns()` / `_migrate_add_sharing_columns()` / `_migrate_add_ingredients_steps()` の定義・呼び出しを削除 |
-| `requirements.txt` | `alembic` を追加 |
-| `README.md` | Alembic移行の内容を追記。ローカル起動手順に `alembic upgrade head` を追加 |
-
-</details>
-
-<br>
-
----
-
-<details>
-<summary><h2 style="display:inline;">v4.7.5 アップデート内容（クリックで展開）</h2></summary>
-
-> **TL;DR:** 機能追加は行わず、依存関係の整合・セキュリティ警告追加・デッドコード削除などコードベースの健全性を高めた保守リリース。
+機能追加は行わず、コードベースの健全性を高めることを目的とした保守リリースです。
 
 <br>
 
@@ -171,29 +78,13 @@ Get-ChildItem -Recurse -Filter "*.jsx" src/ | Select-String "RecipeListPage"
 
 ### 4. README「設計上の判断メモ」セクションを追加
 
-`tCat` / `tUnit` ヘルパーが各コンポーネントに個別定義されている現状について、DRY 原則の観点から将来の改善方針とともに記録した。
+`tCat` / `tUnit` ヘルパーが各コンポーネントに個別定義されている現状について、DRY 原則の観点から将来の改善方針とともに記録した（内容は後述の「設計上の判断メモ」セクションを参照）。
 
 <br>
 
-**変更ファイル一覧（v4.7 → v4.7.5）**
+---
 
-| ファイル | 変更内容 |
-|---|---|
-| `requirements.txt` | `pydantic-settings` / `passlib[bcrypt]` / `python-jose[cryptography]` / `google-generativeai` / `chromadb` を追加 |
-| `backend/config.py` | `model_post_init` でデフォルト `SECRET_KEY` 使用時の起動警告を追加 |
-| `pages/RecipeListPage.jsx` | 未使用と確認の上、削除 |
-| `README.md` | 設計上の判断メモ（`tCat` / `tUnit` の DRY 原則に関する記述）を追加。`RecipeListPage.jsx` 関連の保留記述を削除 |
-
-</details>
-
-<br>
-
-<details>
-<summary><h2 style="display:inline;">v4.7 アップデート内容（クリックで展開）</h2></summary>
-
-> **TL;DR:** レシピ作成フォームのラベル、料理カテゴリ・分量単位の表示を含め、UI全体の多言語対応（日本語／英語／トルコ語）を完成させたリリース。
-
-<br>
+## v4.7 アップデート内容
 
 v4.6でアプリ全体のUI文字列を多言語化しましたが、以下の3点が未対応のままでした。
 
@@ -293,9 +184,31 @@ const tUnit = (key) => t(`units.${key}`, { defaultValue: key })
 
 <br>
 
-**変更ファイル一覧（v4.6 → v4.7）**
+---
 
-翻訳JSONの更新：
+## 技術スタック
+
+- **フロントエンド**: React 18.3 / React Router v6 / Vite 5.4 / Axios 1.7 / vite-plugin-pwa / react-i18next 14 / i18next-browser-languagedetector
+- **バックエンド**: FastAPI 0.115 / SQLAlchemy 2.0 / Pydantic v2 / SQLite
+- **認証**: passlib（bcrypt） / python-jose（JWT）
+- **AI・データ**: ChromaDB / Google Gemini API（gemini-2.5-flash）/ Imagen 3（コメントアウト済み）
+
+<br>
+
+---
+
+## 変更ファイル一覧（v4.7 → v4.7.5）
+
+| ファイル | 変更内容 |
+|---|---|
+| `requirements.txt` | `pydantic-settings` / `passlib[bcrypt]` / `python-jose[cryptography]` / `google-generativeai` / `chromadb` を追加 |
+| `backend/config.py` | `model_post_init` でデフォルト `SECRET_KEY` 使用時の起動警告を追加 |
+| `pages/RecipeListPage.jsx` | 未使用と確認の上、削除 |
+| `README.md` | 設計上の判断メモ（`tCat` / `tUnit` の DRY 原則に関する記述）を追加。`RecipeListPage.jsx` 関連の保留記述を削除 |
+
+## 変更ファイル一覧（v4.6 → v4.7）
+
+### 翻訳JSONの更新
 
 | ファイル | 変更内容 |
 |---|---|
@@ -303,7 +216,7 @@ const tUnit = (key) => t(`units.${key}`, { defaultValue: key })
 | `src/i18n/locales/en.json` | 同上（英語訳） |
 | `src/i18n/locales/tr.json` | 同上（トルコ語訳） |
 
-フロントエンド（既存ファイルの変更）：
+### フロントエンド（既存ファイルの変更）
 
 | ファイル | 変更内容 |
 |---|---|
@@ -314,19 +227,6 @@ const tUnit = (key) => t(`units.${key}`, { defaultValue: key })
 | `pages/ShoppingListPage.jsx` | 必要量・手持ち量・購入量の単位表示を `tUnit()` 経由に変更 |
 | `pages/SavedShoppingListPage.jsx` | 購入リストの単位表示を `tUnit()` 経由に変更 |
 | `pages/LibraryPage.jsx` | ショッピングリストプレビューの単位タグを `tUnit()` 経由に変更 |
-
-</details>
-
-<br>
-
----
-
-## 技術スタック
-
-- **フロントエンド**: React 18.3 / React Router v6 / Vite 5.4 / Axios 1.7 / vite-plugin-pwa / react-i18next 14 / i18next-browser-languagedetector
-- **バックエンド**: FastAPI 0.115 / SQLAlchemy 2.0 / Pydantic v2 / SQLite / **Alembic**
-- **認証**: passlib（bcrypt） / python-jose（JWT）
-- **AI・データ**: ChromaDB / Google Gemini API（gemini-2.5-flash）/ Imagen 3（コメントアウト済み）
 
 <br>
 
@@ -345,9 +245,9 @@ const tUnit = (key) => t(`units.${key}`,      { defaultValue: key })
 
 将来的には `hooks/useRecipeTranslation.js` として共通化し、翻訳ロジックの変更が1箇所で完結する構造に移行することを検討しています。現バージョンではページ数が限定的で影響範囲が把握しやすいため、可読性を優先して現状の形を維持しています。
 
-### マイグレーション管理について（v4.8で対応済み）
+### マイグレーション管理について
 
-v4.7.5までは `main.py` 起動時に `_migrate_add_*()` 関数群が `ALTER TABLE` を試みる方式でマイグレーションを管理していましたが、v4.8で **Alembic** に移行し、バージョン管理・ロールバック対応の構成になりました。詳細は[「v4.8 アップデート内容」](#v48-アップデート内容)を参照してください。
+現在 `main.py` 起動時に `_migrate_add_*()` 関数群が `ALTER TABLE` を試みる方式でマイグレーションを管理しています。v4.8 では SQLAlchemy 公式のマイグレーション管理ツールである **Alembic** の導入を予定しており、バージョン管理・ロールバック対応の構成に移行します。
 
 <br>
 
@@ -365,11 +265,7 @@ Imagen 3 による画像自動生成は `gemini_client.py` にコメントアウ
 
 **ユーザー投稿コンテンツ（レシピ本文）の言語横断翻訳は対応範囲外**
 
-レシピタイトル・材料名・手順などのUGCは、入力された言語のまま保存・表示される仕様です。断念の詳細な理由は上記「v4.7 アップデート内容」の4.を参照してください。
-
-**モデル定義（`models.py`）と実DBスキーマの間の外部キー・インデックスのズレ**
-
-v4.8のAlembic導入過程で判明した課題です。手書きマイグレーション時代はカラム追加のみを行い、外部キー制約（`ondelete` 設定含む）やインデックス構成まではDBに反映していませんでした。特に無名の外部キー制約が存在するため、SQLiteのbatch mode実行時に `Constraint must have a name` エラーが発生することを確認しています。対応には `naming_convention` の導入と、既存制約の付け直しが必要になるため、影響範囲の精査を含めて次バージョン以降で対応予定です。
+レシピタイトル・材料名・手順などのUGCは、入力された言語のまま保存・表示される仕様です。断念の詳細な理由は「v4.7 アップデート内容 4.」を参照してください。
 
 <br>
 
@@ -377,14 +273,12 @@ v4.8のAlembic導入過程で判明した課題です。手書きマイグレー
 
 ## ローカル起動手順
 
-v4.8で `alembic upgrade head` の実行が追加されました。
+v4.7からの変更点はありません。
 
 ```powershell
 # ターミナル 1（バックエンド）
 cd backend
-venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-alembic upgrade head
+venv/Scripts/activate
 uvicorn main:app --reload
 
 # ターミナル 2（フロントエンド）
@@ -400,7 +294,7 @@ npm run dev
 
 ## 次期アップデートについて
 
-v4.0.1でテスト実装したRAGの `references` フィールドを活用した根拠表示の追加、Imagen 3による画像生成の本番有効化、フォーク数の表示・通知設定の実装を引き続き検討しています。また、v4.8で判明した `models.py` と実DBの外部キー・インデックスのズレの解消（`naming_convention` の導入）も候補としています。
+v4.8では Alembic によるマイグレーション管理の導入を予定しています。また、v4.0.1でテスト実装したRAGの `references` フィールドを活用した根拠表示の追加、Imagen 3による画像生成の本番有効化、フォーク数の表示・通知設定の実装も引き続き検討しています。
 
 <br>
 
