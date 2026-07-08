@@ -56,7 +56,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/uploads", StaticFiles(directory=settings.upload_dir_str), name="uploads")
+app.mount("/uploads", StaticFiles(directory=str(settings.upload_dir)), name="uploads")
 
 app.include_router(auth_router.router)
 app.include_router(recipes.router)
