@@ -1,0 +1,7 @@
+# 開発・テスト時のみ必要な追加依存
+# 使い方: pip install -r requirements.txt -r requirements-dev.txt
+-r requirements.txt
+
+pytest==8.3.3
+httpx==0.27.2          # FastAPI TestClient が内部で使用
+ruff==0.15.20           # lintチェック（CIで使用）

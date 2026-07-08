@@ -16,7 +16,15 @@ python-dotenv==1.0.1
 
 # ── 認証 ────────────────────────────────────────
 passlib[bcrypt]==1.7.4        # パスワードハッシュ（bcrypt）
+# bcryptは4.1以降でpasslib 1.7.4との互換性が壊れる
+# （ValueError: password cannot be longer than 72 bytes が
+#   register/login時に必ず発生する）ため明示的に4.0.1へ固定する。
+# 参考: passlibは2020年以降実質メンテナンスが停止しており、
+# bcrypt側のAPI変更に追随できていないことが原因。
+bcrypt==4.0.1
 python-jose[cryptography]==3.3.0  # JWT 署名・検証
+email-validator==2.2.0        # routers/auth.py の EmailStr 型に必須
+                               # (これが無いと起動時にImportErrorでクラッシュする)
 
 # ── AI / LLM ────────────────────────────────────
 openai==1.51.0

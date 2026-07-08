@@ -33,3 +33,8 @@ dist/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# テスト実行時の生成物
+backend/tests/.tmp_uploads/
+backend/test_recipes.db
+backend/.pytest_cache/
