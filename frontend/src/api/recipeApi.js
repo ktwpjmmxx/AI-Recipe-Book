@@ -25,7 +25,7 @@ api.interceptors.response.use(
   res => res,
   err => {
     const status = err?.response?.status
-    const url    = err?.config?.url
+    const url = err?.config?.url
     if (err.code === 'ECONNABORTED') console.error(`[API] タイムアウト: ${url}`)
     else console.error(`[API] ${status ?? 'network error'}: ${url}`)
     return Promise.reject(err)
@@ -35,14 +35,14 @@ api.interceptors.response.use(
 export default api
 
 // ── レシピ CRUD ──────────────────────────────
-export const fetchRecipes    = (params = {}) => api.get('/recipes', { params }).then(r => r.data)
-export const fetchRecipe     = id            => api.get(`/recipes/${id}`).then(r => r.data)
-export const createRecipe    = data          => api.post('/recipes', data).then(r => r.data)
-export const updateRecipe    = (id, data)    => api.patch(`/recipes/${id}`, data).then(r => r.data)
-export const deleteRecipe    = id            => api.delete(`/recipes/${id}`)
-export const toggleFavorite  = id            => api.patch(`/recipes/${id}/favorite`).then(r => r.data)
-export const fetchCategories = ()            => api.get('/categories').then(r => r.data)
-export const askRecipeAI     = (id, q)       => api.post(`/recipes/${id}/ai-assist`, { question: q }).then(r => r.data)
+export const fetchRecipes = (params = {}) => api.get('/recipes', { params }).then(r => r.data)
+export const fetchRecipe = id => api.get(`/recipes/${id}`).then(r => r.data)
+export const createRecipe = data => api.post('/recipes', data).then(r => r.data)
+export const updateRecipe = (id, data) => api.patch(`/recipes/${id}`, data).then(r => r.data)
+export const deleteRecipe = id => api.delete(`/recipes/${id}`)
+export const toggleFavorite = id => api.patch(`/recipes/${id}/favorite`).then(r => r.data)
+export const fetchCategories = () => api.get('/categories').then(r => r.data)
+export const askRecipeAI = (id, q) => api.post(`/recipes/${id}/ai-assist`, { question: q }).then(r => r.data)
 
 export const uploadImage = (id, file) => {
   const form = new FormData()
@@ -68,13 +68,13 @@ export const forkRecipe = shareId =>
 
 // ── AI ───────────────────────────────────────
 export const discoverRecipes = (params = {}) => api.post('/ai/discover', params).then(r => r.data)
-export const generateRecipe  = params        => api.post('/ai/generate-recipe', params).then(r => r.data)
-export const suggestMenu     = question      => api.post('/ai/suggest-menu', { question }).then(r => r.data)
-export const searchAssist    = question      => api.post('/ai/search-assist', { question }).then(r => r.data)
+export const generateRecipe = params => api.post('/ai/generate-recipe', params).then(r => r.data)
+export const suggestMenu = question => api.post('/ai/suggest-menu', { question }).then(r => r.data)
+export const searchAssist = question => api.post('/ai/search-assist', { question }).then(r => r.data)
 
 // ── 買い物リスト ──────────────────────────────
-export const fetchShoppingLists      = ()          => api.get('/shopping-lists').then(r => r.data)
-export const fetchShoppingList       = id          => api.get(`/shopping-lists/${id}`).then(r => r.data)
-export const createShoppingList      = data        => api.post('/shopping-lists', data).then(r => r.data)
+export const fetchShoppingLists = () => api.get('/shopping-lists').then(r => r.data)
+export const fetchShoppingList = id => api.get(`/shopping-lists/${id}`).then(r => r.data)
+export const createShoppingList = data => api.post('/shopping-lists', data).then(r => r.data)
 export const updateShoppingListItems = (id, items) => api.patch(`/shopping-lists/${id}/items`, items).then(r => r.data)
-export const deleteShoppingList      = id          => api.delete(`/shopping-lists/${id}`)
+export const deleteShoppingList = id => api.delete(`/shopping-lists/${id}`)
