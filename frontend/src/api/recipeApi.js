@@ -9,8 +9,9 @@
 import axios from 'axios'
 import { getToken } from '../context/AuthContext'
 
+const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   timeout: 30000,
 })
 
