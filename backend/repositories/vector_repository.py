@@ -36,6 +36,21 @@ def get_collection():
     return _collection
 
 
+# ── 材料整形（共通ロジック）─────────────────────
+def format_ingredients_text(ingredients: list[dict]) -> str:
+    """材料リストを「食材名 + 分量 + 単位」のテキストに整形する（「、」区切り）"""
+    parts = []
+    for i in (ingredients or []):
+        name = i.get("name", "")
+        if i.get("amount_text"):
+            parts.append(f"{name} {i['amount_text']}")
+        elif i.get("amount"):
+            parts.append(f"{name} {i['amount']}{i.get('unit', '')}")
+        else:
+            parts.append(name)
+    return "、".join(parts)
+
+
 # ── ドキュメント構築 ───────────────────────────
 def build_recipe_document(recipe: RecipeORM) -> str:
     """
@@ -48,16 +63,7 @@ def build_recipe_document(recipe: RecipeORM) -> str:
       - これにより「材料で検索」「調理方法で検索」どちらにも対応できる
     """
     # 材料テキスト
-    ings_parts = []
-    for i in (recipe.ingredients or []):
-        name = i.get("name", "")
-        if i.get("amount_text"):
-            ings_parts.append(f"{name} {i['amount_text']}")
-        elif i.get("amount"):
-            ings_parts.append(f"{name} {i['amount']}{i.get('unit', '')}")
-        else:
-            ings_parts.append(name)
-    ingredients_text = "、".join(ings_parts)
+    ingredients_text = format_ingredients_text(recipe.ingredients)
 
     # 手順テキスト
     steps_text = " ".join(

@@ -17,8 +17,9 @@ from auth import get_current_user
 from database import get_db
 from models import RecipeORM, UserORM
 from repositories.recipe_repository import RecipeRepository
-from repositories.vector_repository import upsert_recipe, delete_recipe as vec_delete
-from routers.schemas import RecipeCreate, RecipeUpdate, RecipeOut
+from repositories.vector_repository import upsert_recipe, delete_recipe as vec_delete, format_ingredients_text
+from routers.schemas import RecipeCreate, RecipeUpdate, RecipeOut, AIRequest, AIResponse
+from services.ai_service import get_ai_service
 from config import settings
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
@@ -197,3 +198,27 @@ def set_visibility(
         share_id=r.share_id,
         share_path=f"/r/{r.share_id}" if (r.is_public and r.share_id) else None,
     )
+
+
+# ── v5.0: 特定レシピへのAI質問 ─────────────────
+
+@router.post("/{recipe_id}/ai-assist", response_model=AIResponse)
+def assist_recipe(
+    recipe_id:    int,
+    body:         AIRequest,
+    db:           Session = Depends(get_db),
+    current_user: UserORM = Depends(get_current_user),
+):
+    """
+    特定レシピについてのAI質問応答。
+
+    レシピ名と材料リスト（vector_repository の共通ロジックで整形）を
+    コンテキストとして ai_service.assist() に渡し、LLM が回答する。
+    """
+    repo = RecipeRepository(db)
+    r    = repo.find_by_id(recipe_id, user_id=current_user.id)
+    if not r: _not_found()
+
+    ingredients_text = format_ingredients_text(r.ingredients)
+    answer, is_mock = get_ai_service().assist(r.title, ingredients_text, body.question)
+    return AIResponse(answer=answer, is_mock=is_mock)
