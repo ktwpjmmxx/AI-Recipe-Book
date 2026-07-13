@@ -19,7 +19,8 @@
     "home": "Home",
     "library": "Library",
     "favorites": "Favorites",
-    "account": "Account"
+    "account": "Account",
+    "aiSearch": "AI Search"
   },
   "time": {
     "morning": {
@@ -46,7 +47,7 @@
     "default": "Picked from your library for you"
   },
   "home": {
-    "searchPlaceholder": "Search recipes…",
+    "searchPlaceholder": "Search within your recipes…",
     "aiBannerTitle": "Ask AI what to cook today",
     "aiBannerSub": "Tell it your mood or time, and it'll suggest a recipe",
     "aiRecommendSection": "✦ AI pick for tonight",
@@ -61,7 +62,7 @@
     "title": "Library",
     "recipeCount": "{{count}} recipes saved",
     "shoppingListTab": "Saved shopping lists",
-    "searchPlaceholder": "Search recipes…",
+    "searchPlaceholder": "Search within your recipes…",
     "addByLink": "🔗 Add by link",
     "tabRecipes": "📚 Recipes",
     "tabShopping": "🛒 Shopping Lists",
@@ -327,5 +328,19 @@
     "ja": "日本語",
     "en": "English",
     "tr": "Türkçe"
+  },
+  "aiSearch": {
+    "navLabel": "AI Search",
+    "title": "AI Search",
+    "subtitle": "Ask AI anything across your saved recipes",
+    "placeholder": "e.g. I only have cabbage and eggs in the fridge",
+    "submit": "Ask AI",
+    "loading": "Searching your library…",
+    "referencesTitle": "Referenced recipes",
+    "noReferences": "No related recipes were found.",
+    "emptyTitle": "Ask anything about your recipes",
+    "emptySub": "Try \"What can I make with leftovers?\"\nor \"I need one more side dish\"",
+    "mockNotice": "AI Search is currently running in mock mode (the real AI call failed or isn't configured).",
+    "scoreLabel": "Relevance {{score}}%"
   }
 }

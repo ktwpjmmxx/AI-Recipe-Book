@@ -86,9 +86,12 @@ class OpenAIClient(LLMClient):
         category: Optional[str] = None,
     ) -> list[DiscoverItem]:
         parts = []
-        if mood:     parts.append(f"気分: {mood}")
-        if max_time: parts.append(f"調理時間: {max_time}分以内")
-        if category: parts.append(f"カテゴリ: {category}")
+        if mood:
+            parts.append(f"気分: {mood}")
+        if max_time:
+            parts.append(f"調理時間: {max_time}分以内")
+        if category:
+            parts.append(f"カテゴリ: {category}")
         constraints = "、".join(parts) if parts else "特になし"
         raw  = self._chat(_DISCOVER_PROMPT.format(constraints=constraints, cats=_CATEGORIES))
         data  = json.loads(raw)

@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Optional
 from google.genai import client, types  # 最新パッケージ
 from services.ai.base import LLMClient, DiscoverItem, GeneratedRecipe
 from config import settings
@@ -31,7 +30,13 @@ _RETRY_STATUSES = ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED")
 
 class GeminiClient(LLMClient):
     def __init__(self) -> None:
-        self._client = client.Client(api_key=settings.gemini_api_key)
+        # vertexai=False を明示。未指定だと google-genai SDK は
+        # GOOGLE_GENAI_USE_VERTEXAI / GOOGLE_GENAI_USE_ENTERPRISE 環境変数を見て
+        # Vertex AI モードに自動的に切り替わることがあり、その場合 api_key（Gemini
+        # Developer APIキー）を渡しても認証形式が合わず
+        # 401 ACCESS_TOKEN_TYPE_UNSUPPORTED になる。本プロジェクトは
+        # Gemini Developer API（無料枠）のみを利用するため常に False で固定する。
+        self._client = client.Client(api_key=settings.gemini_api_key, vertexai=False)
         self._model_name = settings.gemini_model
 
     def _call_with_retry(self, **kwargs) -> object:
@@ -86,9 +91,12 @@ class GeminiClient(LLMClient):
 
     def discover(self, mood=None, max_time=None, category=None) -> list[DiscoverItem]:
         parts = []
-        if mood:     parts.append(f"気分: {mood}")
-        if max_time: parts.append(f"調理時間: {max_time}分以内")
-        if category: parts.append(f"カテゴリ: {category}")
+        if mood:
+            parts.append(f"気分: {mood}")
+        if max_time:
+            parts.append(f"調理時間: {max_time}分以内")
+        if category:
+            parts.append(f"カテゴリ: {category}")
         constraints = "、".join(parts) if parts else "特になし"
 
         data  = self._generate_json(_DISCOVER_PROMPT.format(constraints=constraints, cats=_CATEGORIES))

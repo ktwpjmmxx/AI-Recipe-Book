@@ -19,7 +19,8 @@
     "home": "Ana Sayfa",
     "library": "Kütüphane",
     "favorites": "Favoriler",
-    "account": "Hesap"
+    "account": "Hesap",
+    "aiSearch": "AI Arama"
   },
   "time": {
     "morning": {
@@ -46,7 +47,7 @@
     "default": "Kütüphanenizden sizin için seçildi"
   },
   "home": {
-    "searchPlaceholder": "Tarif ara…",
+    "searchPlaceholder": "Tariflerinizde arayın…",
     "aiBannerTitle": "Bugün ne pişireceğini yapay zekaya sor",
     "aiBannerSub": "Ruh halini veya süreyi söyle, tarif önerelim",
     "aiRecommendSection": "✦ Bu gece için yapay zeka önerisi",
@@ -61,7 +62,7 @@
     "title": "Kütüphane",
     "recipeCount": "{{count}} tarif kaydedildi",
     "shoppingListTab": "Kaydedilen alışveriş listeleri",
-    "searchPlaceholder": "Tarif ara…",
+    "searchPlaceholder": "Tariflerinizde arayın…",
     "addByLink": "🔗 Bağlantıyla ekle",
     "tabRecipes": "📚 Tarifler",
     "tabShopping": "🛒 Alışveriş Listeleri",
@@ -327,5 +328,19 @@
     "ja": "日本語",
     "en": "English",
     "tr": "Türkçe"
+  },
+  "aiSearch": {
+    "navLabel": "AI Arama",
+    "title": "AI Arama",
+    "subtitle": "Kaydettiğiniz tüm tariflerde yapay zekaya sorun",
+    "placeholder": "örn. Buzdolabımda sadece lahana ve yumurta var",
+    "submit": "Yapay Zekaya Sor",
+    "loading": "Kütüphanenizde aranıyor…",
+    "referencesTitle": "Referans alınan tarifler",
+    "noReferences": "İlgili tarif bulunamadı.",
+    "emptyTitle": "Tarifleriniz hakkında bir şey sorun",
+    "emptySub": "\"Artık malzemelerle ne yapabilirim?\"\nya da \"Bir yan yemeğe daha ihtiyacım var\" deneyin",
+    "mockNotice": "AI Arama şu anda mock modda çalışıyor (gerçek yapay zeka çağrısı başarısız oldu ya da yapılandırılmadı).",
+    "scoreLabel": "İlgi %{{score}}"
   }
 }

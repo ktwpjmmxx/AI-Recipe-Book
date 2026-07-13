@@ -5,7 +5,8 @@
  * 複数ページから再利用可能にする。
  */
 import { useState, useEffect, useCallback } from 'react'
-import { fetchRecipe, toggleFavorite, uploadImage, deleteRecipe, askRecipeAI } from '../api/recipeApi'
+import { fetchRecipe, toggleFavorite, uploadImage, deleteRecipe, askRecipeAI, getApiErrorMessage } from '../api/recipeApi'
+import { useToast } from '../context/ToastContext'
 
 const SERVING_OPTIONS = [0.5, 1, 2, 3, 4, 6]
 
@@ -111,6 +112,7 @@ export function useAIPanel(recipe) {
   const [input,    setInput]    = useState('')
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState(null)
+  const { notify } = useToast()
 
   useEffect(() => {
     if (recipe) {
@@ -128,16 +130,18 @@ export function useAIPanel(recipe) {
     try {
       const res = await askRecipeAI(recipe.id, text)
       setMessages(prev => [...prev, { role: 'bot', text: res?.answer ?? '回答を取得できませんでした。' }])
+      if (res?.is_mock) {
+        notify('現在、AI機能はモック応答で動作しています（実際のAI呼び出しに失敗、または未設定です）。', 'info')
+      }
     } catch (err) {
-      const msg = err?.code === 'ECONNABORTED'
-        ? '応答がタイムアウトしました。もう一度お試しください。'
-        : 'エラーが発生しました。再度お試しください。'
+      const msg = getApiErrorMessage(err, 'エラーが発生しました。再度お試しください。')
       setMessages(prev => [...prev, { role: 'bot', text: msg }])
       setError(msg)
+      notify(msg, 'error')
     } finally {
       setLoading(false)
     }
-  }, [recipe, input, loading])
+  }, [recipe, input, loading, notify])
 
   return { messages, input, setInput, loading, error, send }
 }

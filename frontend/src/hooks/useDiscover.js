@@ -5,7 +5,8 @@
  * タイムアウトエラーを型で区別し、UI に適切なメッセージを表示する。
  */
 import { useState, useCallback } from 'react'
-import { discoverRecipes, generateRecipe, createRecipe } from '../api/recipeApi'
+import { discoverRecipes, generateRecipe, createRecipe, getApiErrorMessage } from '../api/recipeApi'
+import { useToast } from '../context/ToastContext'
 
 export const STEP = {
   FILTER:     'filter',
@@ -37,6 +38,7 @@ export function useDiscover() {
   const [saving,    setSaving]    = useState(false)
   const [savedId,   setSavedId]   = useState(null)
   const [error,     setError]     = useState(null)
+  const { notify } = useToast()
 
   const handleDiscover = useCallback(async () => {
     setStep(STEP.LOADING)
@@ -52,13 +54,12 @@ export function useDiscover() {
       setIsMock(res?.is_mock ?? true)
       setStep(STEP.RESULTS)
     } catch (err) {
-      const msg = err?.code === 'ECONNABORTED'
-        ? 'AIの応答がタイムアウトしました。もう一度お試しください。'
-        : '提案の取得に失敗しました。バックエンドが起動しているか確認してください。'
+      const msg = getApiErrorMessage(err, '提案の取得に失敗しました。バックエンドが起動しているか確認してください。')
       setError(msg)
+      notify(msg, 'error')
       setStep(STEP.FILTER)
     }
-  }, [mood, maxTime, category])
+  }, [mood, maxTime, category, notify])
 
   const handleSelectItem = useCallback(async item => {
     setStep(STEP.GENERATING)
@@ -68,13 +69,12 @@ export function useDiscover() {
       setGenerated(res)
       setStep(STEP.PREVIEW)
     } catch (err) {
-      const msg = err?.code === 'ECONNABORTED'
-        ? 'レシピ生成がタイムアウトしました。もう一度お試しください。'
-        : 'レシピの生成に失敗しました。'
+      const msg = getApiErrorMessage(err, 'レシピの生成に失敗しました。')
       setError(msg)
+      notify(msg, 'error')
       setStep(STEP.RESULTS)
     }
-  }, [servings])
+  }, [servings, notify])
 
   const handleSave = useCallback(async rating => {
     if (rating !== 'save') {

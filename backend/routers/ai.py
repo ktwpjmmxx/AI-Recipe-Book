@@ -21,7 +21,12 @@ router = APIRouter(prefix="/api/ai", tags=["ai"])
 
 # ── 既存エンドポイント ─────────────────────────
 
-@router.post("/discover", response_model=DiscoverResponse)
+@router.post(
+    "/discover",
+    response_model=DiscoverResponse,
+    summary="AIレシピ候補提案（気分・時間・カテゴリ条件）",
+    description="気分・調理時間・カテゴリの条件からAIが3〜5件のレシピ候補を提案する。LLM呼び出し失敗時はモックにフォールバックし、is_mockで判別できる（常に200 OK）。",
+)
 def ai_discover(body: DiscoverRequest):
     items, is_mock = get_ai_service().discover(
         mood=body.mood,
@@ -34,7 +39,12 @@ def ai_discover(body: DiscoverRequest):
     )
 
 
-@router.post("/generate-recipe", response_model=GenerateRecipeResponse)
+@router.post(
+    "/generate-recipe",
+    response_model=GenerateRecipeResponse,
+    summary="AIレシピ全文生成",
+    description="料理名と人数からAIが材料・手順を含むレシピ全文を生成する。LLM呼び出し失敗時はモックにフォールバックする（常に200 OK）。",
+)
 def ai_generate_recipe(body: GenerateRecipeRequest):
     recipe, is_mock = get_ai_service().generate_recipe(body.title, body.servings)
     return GenerateRecipeResponse(
@@ -50,7 +60,12 @@ def ai_generate_recipe(body: GenerateRecipeRequest):
     )
 
 
-@router.post("/suggest-menu", response_model=AIResponse)
+@router.post(
+    "/suggest-menu",
+    response_model=AIResponse,
+    summary="保存済みレシピからの献立提案（簡易版）",
+    description="保存済みレシピの中から簡易ロジックで献立を提案する（RAGは使わず先頭数件を参照するのみの簡易実装）。",
+)
 def suggest_menu(body: AIRequest, db: Session = Depends(get_db)):
     from sqlalchemy import select
     from models import RecipeORM
@@ -86,7 +101,21 @@ class SearchAssistResponse(BaseModel):
     references: list[RetrievedRecipe]  # 回答の根拠となったレシピ一覧
 
 
-@router.post("/search-assist", response_model=SearchAssistResponse)
+@router.post(
+    "/search-assist",
+    response_model=SearchAssistResponse,
+    summary="RAGライブラリ横断AI質問応答",
+    responses={
+        200: {
+            "description": "AI回答と根拠となった参照レシピ一覧",
+            "content": {"application/json": {"example": {
+                "answer": "冷蔵庫の余り物を使うなら、豚肉と野菜の炒め物が合いそうです。",
+                "is_mock": False,
+                "references": [{"recipe_id": 12, "title": "豚肉と野菜の炒め物", "category": "中華", "score": 0.18}],
+            }}},
+        },
+    },
+)
 def ai_search_assist(body: SearchAssistRequest):
     """
     RAGを使ったライブラリ横断型AI回答。

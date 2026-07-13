@@ -31,7 +31,12 @@ def _to_out(r) -> RecipeOut:
 
 
 # ── 公開レシピの閲覧（認証不要） ──────────────
-@router.get("/recipes/{share_id}", response_model=RecipeOut)
+@router.get(
+    "/recipes/{share_id}",
+    response_model=RecipeOut,
+    summary="共有URL経由のレシピ閲覧（認証不要）",
+    responses={404: {"description": "レシピが非公開または存在しない場合", "content": {"application/json": {"example": {"error": {"code": "NOT_FOUND", "message": "このレシピは公開されていない、または存在しません。"}}}}}},
+)
 def get_public_recipe(share_id: str, db: Session = Depends(get_db)):
     """
     共有URL経由でレシピを閲覧する。
@@ -52,7 +57,14 @@ class ForkResponse(BaseModel):
     title: str
 
 
-@router.post("/recipes/{share_id}/fork", response_model=ForkResponse, status_code=201)
+@router.post(
+    "/recipes/{share_id}/fork",
+    response_model=ForkResponse,
+    status_code=201,
+    summary="公開レシピをフォーク（認証必須）",
+    description="共有URLのレシピを自分のライブラリにコピーする。",
+    responses={404: {"description": "レシピが非公開または存在しない場合", "content": {"application/json": {"example": {"error": {"code": "NOT_FOUND", "message": "このレシピは公開されていない、または存在しません。"}}}}}},
+)
 def fork_recipe(
     share_id:     str,
     db:           Session = Depends(get_db),

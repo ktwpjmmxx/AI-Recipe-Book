@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# 上記の1行はPythonの構文には影響しないが、pipがrequirements.txtを読む際に
+# ロケール依存のエンコーディング（Windowsのcp932等）ではなくUTF-8として
+# 解釈することを明示するために必要（box drawing文字を含むコメントの文字化け対策）。
+
 # ── Web フレームワーク ──────────────────────────
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
@@ -7,7 +12,7 @@ sqlalchemy==2.0.35
 aiosqlite==0.20.0
 
 # ── バリデーション / 設定管理 ───────────────────
-pydantic==2.9.2
+pydantic==2.13.4               # google-genai==2.11.0 が pydantic>=2.12.5 を要求するため引き上げ
 pydantic-settings==2.5.2      # config.py の BaseSettings に必要
 
 # ── ファイルアップロード / 環境変数 ─────────────
@@ -28,7 +33,10 @@ email-validator==2.2.0        # routers/auth.py の EmailStr 型に必須
 
 # ── AI / LLM ────────────────────────────────────
 openai==1.51.0
-google-generativeai==0.8.3    # Gemini API（gemini-2.0-flash 等）
+google-genai==2.11.0          # Gemini API（gemini-2.0-flash 等）
+                               # 旧パッケージ google-generativeai から移行済み。
+                               # gemini_client.py は `from google.genai import client, types`
+                               # を使用しており、google-generativeai ではこの名前空間は提供されない。
 
 # ── ベクトル DB（RAG 機能） ──────────────────────
 chromadb==0.5.15

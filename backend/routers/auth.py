@@ -66,7 +66,17 @@ class PasswordChangeRequest(BaseModel):
 
 
 # ── 登録 ──────────────────────────────────────
-@router.post("/register", response_model=TokenResponse, status_code=201)
+@router.post(
+    "/register",
+    response_model=TokenResponse,
+    status_code=201,
+    summary="新規ユーザー登録",
+    description="ユーザーを新規登録し、アクセストークンを発行する。パスワードは8文字以上かつ英大文字/英小文字/数字/記号のうち3種類以上を要求する。",
+    responses={
+        409: {"description": "メールアドレスが既に登録済み", "content": {"application/json": {"example": {"error": {"code": "CONFLICT", "message": "このメールアドレスはすでに登録されています。"}}}}},
+        422: {"description": "パスワード強度不足", "content": {"application/json": {"example": {"error": {"code": "UNPROCESSABLE_ENTITY", "message": "パスワードは8文字以上で設定してください。"}}}}},
+    },
+)
 def register(body: RegisterRequest, db: Session = Depends(get_db)):
     """
     新規ユーザーを登録してアクセストークンを返す。
@@ -96,7 +106,15 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
 
 
 # ── ログイン ──────────────────────────────────
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="ログイン",
+    responses={
+        401: {"description": "メールアドレスまたはパスワードが誤り", "content": {"application/json": {"example": {"error": {"code": "UNAUTHORIZED", "message": "メールアドレスまたはパスワードが正しくありません。"}}}}},
+        403: {"description": "アカウントが無効化されている", "content": {"application/json": {"example": {"error": {"code": "FORBIDDEN", "message": "このアカウントは無効です。"}}}}},
+    },
+)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(UserORM).filter(UserORM.email == body.email).first()
 
@@ -117,13 +135,22 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
 
 
 # ── 現在のユーザー情報 ────────────────────────
-@router.get("/me", response_model=UserResponse)
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="ログイン中ユーザー情報取得",
+)
 def me(current_user: UserORM = Depends(get_current_user)):
     return current_user
 
 
 # ── プロフィール編集 ──────────────────────────
-@router.patch("/me", response_model=UserResponse)
+@router.patch(
+    "/me",
+    response_model=UserResponse,
+    summary="プロフィール更新",
+    description="表示名・自己紹介文（bio、140文字以内）を部分更新する。",
+)
 def update_profile(
     body:         ProfileUpdateRequest,
     db:           Session = Depends(get_db),
@@ -138,7 +165,15 @@ def update_profile(
 
 
 # ── パスワード変更 ────────────────────────────
-@router.patch("/me/password", status_code=204)
+@router.patch(
+    "/me/password",
+    status_code=204,
+    summary="パスワード変更",
+    responses={
+        401: {"description": "現在のパスワードが誤り", "content": {"application/json": {"example": {"error": {"code": "UNAUTHORIZED", "message": "現在のパスワードが正しくありません。"}}}}},
+        422: {"description": "新パスワードが強度不足、または現在のパスワードと同一", "content": {"application/json": {"example": {"error": {"code": "UNPROCESSABLE_ENTITY", "message": "新しいパスワードは現在のパスワードと異なるものにしてください。"}}}}},
+    },
+)
 def change_password(
     body:         PasswordChangeRequest,
     db:           Session = Depends(get_db),
@@ -169,7 +204,16 @@ def change_password(
 
 
 # ── プロフィール画像アップロード ──────────────
-@router.post("/me/avatar", response_model=UserResponse)
+@router.post(
+    "/me/avatar",
+    response_model=UserResponse,
+    summary="プロフィール画像アップロード",
+    description=f"対応形式: jpg/png/webp。最大サイズ: {settings.max_upload_mb}MB。",
+    responses={
+        422: {"description": "非対応のファイル形式", "content": {"application/json": {"example": {"error": {"code": "UNPROCESSABLE_ENTITY", "message": "jpg/png/webp のみ対応しています。"}}}}},
+        413: {"description": "ファイルサイズ超過", "content": {"application/json": {"example": {"error": {"code": "PAYLOAD_TOO_LARGE", "message": "ファイルサイズが10MBを超えています。"}}}}},
+    },
+)
 async def upload_avatar(
     file:         UploadFile = File(...),
     db:           Session    = Depends(get_db),
@@ -187,7 +231,8 @@ async def upload_avatar(
         while chunk := await file.read(65536):
             size += len(chunk)
             if size > max_bytes:
-                buf.close(); path.unlink(missing_ok=True)
+                buf.close()
+                path.unlink(missing_ok=True)
                 raise HTTPException(413, f"ファイルサイズが {settings.max_upload_mb}MB を超えています。")
             buf.write(chunk)
 

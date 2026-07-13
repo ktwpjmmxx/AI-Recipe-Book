@@ -20,23 +20,77 @@ from routers import auth as auth_router
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from errors import build_error_body, code_for_status
 
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
+logger = logging.getLogger(__name__)
+
+_TAGS_METADATA = [
+    {"name": "auth", "description": "ユーザー登録・ログイン・プロフィール管理。"},
+    {"name": "recipes", "description": "レシピのCRUD、画像アップロード、公開設定、AI質問応答。"},
+    {"name": "shopping-lists", "description": "レシピから生成する買い物リストの管理。"},
+    {"name": "ai", "description": "AIレシピ提案・生成・RAGライブラリ横断質問応答。LLM呼び出し失敗時は常にモックへフォールバックし、is_mockで判別できる。"},
+    {"name": "public", "description": "認証不要の公開レシピ閲覧・フォーク。"},
+    {"name": "misc", "description": "カテゴリ一覧などの補助エンドポイント。"},
+]
 
 app = FastAPI(
     title="MyRecipeBook API",
-    version="4.9.0",
-    description="レシピ管理 + AI アシスタント REST API（レシピ共有・フォーク対応）",
+    version="5.1.0",
+    description=(
+        "レシピ管理 + AI アシスタント REST API（レシピ共有・フォーク対応）\n\n"
+        "エラーレスポンスは全エンドポイント共通で "
+        "`{\"error\": {\"code\": \"...\", \"message\": \"...\"}}` 形式に統一されている。"
+    ),
+    openapi_tags=_TAGS_METADATA,
 )
+
+
+# ── フェーズ3: 統一エラーレスポンス形式 ──────────────────
+# 既存の各router内の `raise HTTPException(status_code, "message")` は
+# 一切変更せず、ここで {"error": {"code": ..., "message": ...}} 形式に変換する。
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=build_error_body(
+            code=code_for_status(exc.status_code),
+            message=str(exc.detail),
+        ),
+        headers=getattr(exc, "headers", None),
+    )
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logging.error(f"422 detail: {exc.errors()}")
-    return JSONResponse(status_code=422, content={"detail": exc.errors()})
+    logger.error(f"422 detail: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content=build_error_body(
+            code="VALIDATION_ERROR",
+            message="入力内容に誤りがあります。",
+            details=exc.errors(),
+        ),
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled exception on {request.method} {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content=build_error_body(
+            code="INTERNAL_ERROR",
+            message="サーバー内部でエラーが発生しました。",
+        ),
+    )
 
 Base.metadata.create_all(bind=engine)
 

@@ -19,7 +19,8 @@
     "home": "ホーム",
     "library": "ライブラリ",
     "favorites": "お気に入り",
-    "account": "アカウント"
+    "account": "アカウント",
+    "aiSearch": "AI検索"
   },
   "time": {
     "morning": {
@@ -46,7 +47,7 @@
     "default": "あなたのライブラリから選びました"
   },
   "home": {
-    "searchPlaceholder": "レシピを検索…",
+    "searchPlaceholder": "レシピ内を検索…",
     "aiBannerTitle": "AIに今日の料理を相談する",
     "aiBannerSub": "気分や時間を伝えるとレシピを提案・生成します",
     "aiRecommendSection": "✦ 今夜のAIおすすめ",
@@ -61,7 +62,7 @@
     "title": "ライブラリ",
     "recipeCount": "{{count}} レシピ保存中",
     "shoppingListTab": "保存済みの買い物リスト",
-    "searchPlaceholder": "レシピを検索…",
+    "searchPlaceholder": "レシピ内を検索…",
     "addByLink": "🔗 リンクから追加",
     "tabRecipes": "📚 レシピ",
     "tabShopping": "🛒 買い物リスト",
@@ -327,5 +328,19 @@
     "ja": "日本語",
     "en": "English",
     "tr": "Türkçe"
+  },
+  "aiSearch": {
+    "navLabel": "AI検索",
+    "title": "AI検索",
+    "subtitle": "保存したレシピ全体からAIが探して答えます",
+    "placeholder": "例：冷蔵庫にキャベツと卵しかない",
+    "submit": "AIに質問する",
+    "loading": "ライブラリを検索しています…",
+    "referencesTitle": "参照したレシピ",
+    "noReferences": "参照できるレシピが見つかりませんでした。",
+    "emptyTitle": "気になることを聞いてみましょう",
+    "emptySub": "「あと1品欲しい」「余った食材で作れる料理は？」\nのように話しかけてください",
+    "mockNotice": "現在、AI検索はモック応答で動作しています（実際のAI呼び出しに失敗、または未設定です）。",
+    "scoreLabel": "関連度 {{score}}%"
   }
 }

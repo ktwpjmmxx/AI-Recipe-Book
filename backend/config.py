@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # v4.5 追加: Gemini（無料枠・ポートフォリオ用途）
     gemini_api_key: str = ""
-    gemini_model:   str = "gemini-2.0-flash"
+    gemini_model:   str = "gemini-3.5-flash"
 
     # ── DB ──────────────────────────────
     database_url: str = "sqlite:///./recipes.db"

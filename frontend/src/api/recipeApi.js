@@ -34,6 +34,19 @@ api.interceptors.response.use(
 
 export default api
 
+/**
+ * バックエンドのエラーレスポンスから表示用メッセージを取り出す。
+ *
+ * フェーズ3でバックエンドのエラー形式が {"error": {"code", "message"}} に
+ * 統一されたため、それを優先的に読む。タイムアウト・ネットワークエラー時は
+ * バックエンドからレスポンス自体が返らないため、専用のメッセージにフォールバックする。
+ */
+export const getApiErrorMessage = (err, fallback = 'エラーが発生しました。しばらくしてから再度お試しください。') => {
+  if (err?.code === 'ECONNABORTED') return '応答がタイムアウトしました。もう一度お試しください。'
+  const backendMessage = err?.response?.data?.error?.message
+  return backendMessage || fallback
+}
+
 // ── レシピ CRUD ──────────────────────────────
 export const fetchRecipes = (params = {}) => api.get('/recipes', { params }).then(r => r.data)
 export const fetchRecipe = id => api.get(`/recipes/${id}`).then(r => r.data)

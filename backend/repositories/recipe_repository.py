@@ -37,7 +37,7 @@ class RecipeRepository:
         if category:
             q = q.filter(RecipeORM.category == category)
         if favorites_only:
-            q = q.filter(RecipeORM.is_favorite == True)
+            q = q.filter(RecipeORM.is_favorite)
         col = getattr(RecipeORM, sort, RecipeORM.updated_at)
         q   = q.order_by(desc(col) if order == "desc" else asc(col))
         return q.all()
@@ -96,7 +96,7 @@ class RecipeRepository:
         """
         return (
             self._db.query(RecipeORM)
-            .filter(RecipeORM.share_id == share_id, RecipeORM.is_public == True)
+            .filter(RecipeORM.share_id == share_id, RecipeORM.is_public)
             .first()
         )
 

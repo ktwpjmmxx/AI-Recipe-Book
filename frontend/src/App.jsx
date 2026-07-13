@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ToastProvider } from './context/ToastContext'
 import { usePWA } from './hooks/usePWA'
 
 import LoginPage              from './pages/LoginPage'
@@ -12,6 +13,7 @@ import AccountPage             from './pages/AccountPage'
 import RecipeDetailPage        from './pages/RecipeDetailPage'
 import RecipeFormPage          from './pages/RecipeFormPage'
 import DiscoverPage            from './pages/DiscoverPage'
+import AISearchPage            from './pages/AISearchPage'
 import ShoppingListPage        from './pages/ShoppingListPage'
 import SavedShoppingListPage   from './pages/SavedShoppingListPage'
 import PublicRecipePage        from './pages/PublicRecipePage'   // ← v4.4 追加（認証不要）
@@ -121,6 +123,7 @@ function AppShell() {
         <Route path="/favorites"          element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
         <Route path="/account"            element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
         <Route path="/discover"           element={<ProtectedRoute><DiscoverPage /></ProtectedRoute>} />
+        <Route path="/ai-search"          element={<ProtectedRoute><AISearchPage /></ProtectedRoute>} />
         <Route path="/shopping"           element={<ProtectedRoute><ShoppingListPage /></ProtectedRoute>} />
         <Route path="/shopping-lists/:id" element={<ProtectedRoute><SavedShoppingListPage /></ProtectedRoute>} />
         <Route path="/recipes/new"        element={<ProtectedRoute><RecipeFormPage /></ProtectedRoute>} />
@@ -135,9 +138,11 @@ function AppShell() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppShell />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AppShell />
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   )
 }
