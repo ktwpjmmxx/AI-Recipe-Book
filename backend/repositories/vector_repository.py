@@ -119,7 +119,7 @@ def delete_recipe(recipe_id: int) -> None:
 def search_similar_recipes(
     query: str,
     n_results: int = 4,
-    score_threshold: float = 1.2,  # コサイン距離の上限（小さいほど類似度が高い）
+    score_threshold: float = 0.85,  # コサイン距離の上限（小さいほど類似度が高い）
 ) -> list[dict]:
     """
     ユーザーの質問テキストに意味的に近いレシピを返す。

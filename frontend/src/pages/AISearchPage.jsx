@@ -1,8 +1,9 @@
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useAISearch } from '../hooks/useAISearch'
+import { useNavigate } from 'react-router-dom'
 import BottomNav from '../components/BottomNav'
+import MarkdownText from '../components/MarkdownText'
 import '../global.css'
+import { useAISearch } from '../hooks/useAISearch'
 
 // コサイン距離（小さいほど類似）を、表示用の「関連度%」に変換する。
 // バックエンド側の score はあくまで距離なので、フロントでのみ使う近似表示。
@@ -138,7 +139,7 @@ export default function AISearchPage() {
             )}
 
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 16, marginBottom: 20 }}>
-              <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--text-1)', whiteSpace: 'pre-wrap' }}>{answer}</p>
+              <MarkdownText style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--text-1)' }}>{answer}</MarkdownText>
             </div>
 
             <div className="field-label">{t('aiSearch.referencesTitle')}</div>

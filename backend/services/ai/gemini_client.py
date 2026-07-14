@@ -132,5 +132,10 @@ class GeminiClient(LLMClient):
             return "登録レシピから関連するものが見つかりませんでした。"
         context_parts = [f"【レシピ{i}: {hit['title']}】\n{hit['document']}" for i, hit in enumerate(retrieved, 1)]
         context = "\n\n".join(context_parts)
-        prompt = f"以下の登録レシピを参照して回答してください。\n\n【登録レシピ】\n{context}\n\n質問: {question}"
+        prompt = (
+            "以下の登録レシピを参照して回答してください。\n"
+            "「レシピ1」「レシピ2」等の番号は参照用の内部ラベルであり、レシピ同士を区別するためだけのものです。"
+            "回答内でこの番号には言及せず、レシピ名（例:「肉じゃが」）で言及してください。\n\n"
+            f"【登録レシピ】\n{context}\n\n質問: {question}"
+        )
         return self._generate_text(prompt)

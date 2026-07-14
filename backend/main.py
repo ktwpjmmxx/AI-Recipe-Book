@@ -42,7 +42,7 @@ _TAGS_METADATA = [
 
 app = FastAPI(
     title="MyRecipeBook API",
-    version="5.1.0",
+    version="5.2.0",
     description=(
         "レシピ管理 + AI アシスタント REST API（レシピ共有・フォーク対応）\n\n"
         "エラーレスポンスは全エンドポイント共通で "

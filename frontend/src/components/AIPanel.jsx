@@ -4,7 +4,8 @@
  * RecipeDetailPage から切り出した独立コンポーネント。
  * useAIPanel hook から状態を受け取り、描画のみ担当する。
  */
-import { useRef, useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import MarkdownText from './MarkdownText'
 
 const HINTS = ['時短テクニックは？', 'みりんの代用は？', '失敗しないコツは？']
 
@@ -53,11 +54,15 @@ export default function AIPanel({ messages, input, setInput, loading, error, sen
         {messages.map((m, i) => (
           <div key={i} style={{
             padding: '7px 11px', borderRadius: 10, fontSize: 13, lineHeight: 1.6,
-            maxWidth: '88%', whiteSpace: 'pre-wrap',
+            maxWidth: '88%',
             background: m.role === 'bot' ? 'var(--bg)' : 'var(--blue)',
-            color:      m.role === 'bot' ? 'var(--text-1)' : '#fff',
-            alignSelf:  m.role === 'bot' ? 'flex-start' : 'flex-end',
-          }}>{m.text ?? ''}</div>
+            color: m.role === 'bot' ? 'var(--text-1)' : '#fff',
+            alignSelf: m.role === 'bot' ? 'flex-start' : 'flex-end',
+          }}>
+            {m.role === 'bot'
+              ? <MarkdownText style={{ fontSize: 13, lineHeight: 1.6 }}>{m.text ?? ''}</MarkdownText>
+              : <span style={{ whiteSpace: 'pre-wrap' }}>{m.text ?? ''}</span>}
+          </div>
         ))}
         {loading && (
           <div style={{ padding: '7px 11px', borderRadius: 10, background: 'var(--bg)', fontSize: 13, color: 'var(--text-3)' }}>
