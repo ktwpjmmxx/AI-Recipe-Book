@@ -80,11 +80,20 @@ def client(test_db_path, monkeypatch):
 
     app_module.app.dependency_overrides[database.get_db] = _override_get_db
 
+    import services.ai_service as ai_service_module
+
     # ベクトルDB連携（ChromaDB）は副作用切り離しのため no-op化する。
     # フェーズ2でAI機能のデモを別途整理する際に、ここを本物のRAG検証に
     # 差し替えることも可能（その場合は専用のテストを追加する想定）。
     monkeypatch.setattr(app_module.recipes, "upsert_recipe", lambda recipe: None)
     monkeypatch.setattr(app_module.recipes, "vec_delete", lambda recipe_id: None)
+    # 検索側も同様に切り離す。本物のChromaDB(recipes_v2)を参照すると、
+    # テスト用SQLiteは空でも実際のベクトルDBには本番データが残っており、
+    # 「レシピ0件のときreferencesが空になること」の検証が成立しなくなるため。
+    # ai_service.py が `from repositories.vector_repository import search_similar_recipes`
+    # と書いているため、パッチ対象は vector_repository 側ではなく
+    # 実際に呼び出している services.ai_service 側にする必要がある。
+    monkeypatch.setattr(ai_service_module, "search_similar_recipes", lambda query, n_results=4: [])
 
     with TestClient(app_module.app) as c:
         yield c
