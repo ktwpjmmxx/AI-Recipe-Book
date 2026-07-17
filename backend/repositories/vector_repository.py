@@ -7,12 +7,53 @@ repositories/vector_repository.py — ChromaDB アクセス層
 """
 from __future__ import annotations
 import logging
+from google.genai import client as genai_client, types
+from config import settings
 from models import RecipeORM
 
 logger = logging.getLogger(__name__)
 
 # ── シングルトン初期化 ─────────────────────────
 _collection = None
+
+
+class _GeminiEmbeddingFunction:
+    """chromadbのEmbeddingFunctionインターフェースに合わせたGemini embedding関数。
+    task_typeを分けるため、登録用(RETRIEVAL_DOCUMENT)と検索クエリ用(RETRIEVAL_QUERY)で
+    別インスタンスとして使う。"""
+
+    def __init__(self, task_type: str):
+        # gemini_client.py と同様、vertexai=False を明示しないと
+        # 401 ACCESS_TOKEN_TYPE_UNSUPPORTED が再発するため揃える
+        self._client = genai_client.Client(api_key=settings.gemini_api_key, vertexai=False)
+        self._task_type = task_type
+
+    def __call__(self, input: list[str]) -> list[list[float]]:
+        response = self._client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=input,
+            config=types.EmbedContentConfig(task_type=self._task_type),
+        )
+        return [e.values for e in response.embeddings]
+
+
+_doc_embedder = None
+_query_embedder = None
+
+
+def _get_doc_embedder():
+    """レシピ登録用の埋め込み関数を返す"""
+    global _doc_embedder
+    if _doc_embedder is None:
+        _doc_embedder = _GeminiEmbeddingFunction(task_type="RETRIEVAL_DOCUMENT")
+    return _doc_embedder
+
+def _get_query_embedder():
+    """レシピ検索用の埋め込み関数を返す"""
+    global _query_embedder
+    if _query_embedder is None:
+        _query_embedder = _GeminiEmbeddingFunction(task_type="RETRIEVAL_QUERY")
+    return _query_embedder
 
 
 def get_collection():
@@ -24,11 +65,13 @@ def get_collection():
         import chromadb
         client = chromadb.PersistentClient(path="./chroma_data")
         _collection = client.get_or_create_collection(
-            name="recipes",
+            name="recipes_v2",
+            # Gemini text-embedding-004（日本語対応）を明示指定。
+            embedding_function=_get_doc_embedder(),
             # コサイン類似度を使用（意味的な近さで検索する）
             metadata={"hnsw:space": "cosine"},
         )
-        logger.info("ChromaDB initialized")
+        logger.info("ChromaDB initialized (recipes_v2, Gemini text-embedding-004)")
     except ImportError:
         logger.warning("chromadb not installed. Vector indexing disabled.")
     except Exception as e:
@@ -119,7 +162,7 @@ def delete_recipe(recipe_id: int) -> None:
 def search_similar_recipes(
     query: str,
     n_results: int = 4,
-    score_threshold: float = 0.85,  # コサイン距離の上限（小さいほど類似度が高い）
+    score_threshold: float = 0.35,  # コサイン距離の上限（小さいほど類似度が高い）
 ) -> list[dict]:
     """
     ユーザーの質問テキストに意味的に近いレシピを返す。
@@ -145,8 +188,10 @@ def search_similar_recipes(
         return []
 
     try:
+        query_embedding = _get_query_embedder()([query])[0]
+
         results = collection.query(
-            query_texts=[query],
+            query_embeddings=[query_embedding],
             n_results=min(n_results, collection.count()),
             include=["documents", "metadatas", "distances"],
         )
