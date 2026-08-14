@@ -27,6 +27,29 @@ _GENERATE_PROMPT = """「{title}」({servings}人前)のレシピをJSON形式�
 _MAX_RETRIES = 3
 _RETRY_STATUSES = ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED")
 
+# ── search_assist のハイブリッドプロンプト切り替えロジック ──────────
+# フェーズ3のLLM-as-a-judge実験(8カテゴリ比較)で判明した知見:
+#   ・本命が1件に明確に絞れている場合、追加指示(注記等)は冗長になり逆効果
+#   ・複数候補が拮抗している場合、区別提示や確認を促す指示が有効
+#   ・ただし「作り方を教えて」のように手順を明確に求める質問には、
+#     複数候補時でも「確認を促す」指示を入れると逆効果になる
+# → 件数/スコア差による機械的な一次分岐 + 拮抗時のみ意図分類で二次分岐する。
+
+# 本命とノイズ(2位)のスコア差がこれ以上あれば「1件相当（明確）」とみなす。
+# 実験データ（鍋焼きうどん: 0.133、キーマカレー: 0.123 等）と
+# 拮抗ケース（デザート: 0.005、スープ: 0.02 等）の間に十分な余裕を持たせた値。
+_SINGLE_CLEAR_SCORE_GAP = 0.08
+
+_INTENT_CLASSIFICATION_PROMPT = """以下のユーザーの質問が、次のどちらに該当するか判定してください。
+
+A: 具体的な手順を明確に求めている（例:「〜の作り方を教えて」「〜のレシピを教えて」「〜の手順は？」）
+B: 提案や選択を求めている、または対象が曖昧である（例:「〜が食べたい」「さっぱりしたもの」）
+
+質問: {question}
+
+以下のJSON形式のみで回答してください。前置きや説明は不要です。
+{{"intent": "A または B"}}"""
+
 
 class GeminiClient(LLMClient):
     def __init__(self) -> None:
@@ -123,6 +146,73 @@ class GeminiClient(LLMClient):
     # image_bytes = image_response.generated_images[0].image.image_bytes
     # # → S3やローカルに保存して image_url を GeneratedRecipe に追加する
 
+    def _build_context(self, retrieved: list[dict]) -> str:
+        parts = [f"【レシピ{i}: {hit['title']}】\n{hit['document']}" for i, hit in enumerate(retrieved, 1)]
+        return "\n\n".join(parts)
+
+    def _build_prompt_a(self, question: str, context: str) -> str:
+        """シンプル版（現行の本番プロンプト）。本命が明確な場合や、手順を明確に求める質問に使う。"""
+        return (
+            "以下の登録レシピを参照して回答してください。\n"
+            "「レシピ1」「レシピ2」等の番号は参照用の内部ラベルであり、レシピ同士を区別するためだけのものです。"
+            "回答内でこの番号には言及せず、レシピ名（例:「肉じゃが」）で言及してください。\n\n"
+            f"【登録レシピ】\n{context}\n\n質問: {question}"
+        )
+
+    # 実験結果(ハイブリッド版8カテゴリ比較)から判明: 「登録情報にカロリー等の
+    # 記載がない」旨の注記は、質問がそもそも栄養情報を求めていない場合にまで
+    # 一律で付与すると、judgeから「聞かれていないメタ発言」として有用性を
+    # 下げる原因になっていた（デザート・スープの2カテゴリで敗因となった）。
+    # → 質問文に栄養関連のキーワードが含まれる場合のみ、この指示を注入する。
+    _NUTRITION_KEYWORDS = ("カロリー", "栄養", "成分", "糖質", "脂質", "たんぱく質", "タンパク質", "kcal")
+
+    def _mentions_nutrition_info(self, question: str) -> bool:
+        return any(keyword in question for keyword in self._NUTRITION_KEYWORDS)
+
+    def _build_prompt_b(self, question: str, context: str) -> str:
+        """改善版。複数候補が拮抗し、かつ提案・選択を求める質問に使う。"""
+        instructions = [
+            "- 質問の意図と関連性が低いレシピが含まれている場合は、それらには言及せず無視してください",
+            "- 複数のレシピが質問に合致する場合は、それぞれを簡潔に区別して提示してください（1つに絞り込みすぎないでください）",
+            "- 質問が曖昧で対象レシピを一つに特定できない場合は、断定せずにユーザーへ確認を促してください",
+        ]
+        # 質問が栄養関連の情報を求めている場合のみ、この指示を追加する
+        if self._mentions_nutrition_info(question):
+            instructions.append(
+                "- 登録レシピの情報に記載がない内容（カロリー、栄養素など）については、"
+                "断定的に答えず「登録情報には記載がありません」と伝えてください"
+            )
+
+        instructions_text = "\n".join(instructions)
+        return (
+            "以下の登録レシピを参照して回答してください。\n"
+            "「レシピ1」「レシピ2」等の番号は参照用の内部ラベルであり、レシピ同士を区別するためだけのものです。"
+            "回答内でこの番号には言及せず、レシピ名（例:「肉じゃが」）で言及してください。\n\n"
+            f"回答時は以下の点に注意してください:\n{instructions_text}\n\n"
+            f"【登録レシピ】\n{context}\n\n質問: {question}"
+        )
+
+    def _is_single_clear_result(self, retrieved: list[dict]) -> bool:
+        """検索結果が1件のみ、またはスコア差が大きく本命が明確な場合にTrue"""
+        if len(retrieved) <= 1:
+            return True
+        gap = retrieved[1]["score"] - retrieved[0]["score"]
+        return gap >= _SINGLE_CLEAR_SCORE_GAP
+
+    def _classify_intent(self, question: str) -> str:
+        """
+        複数候補が拮抗している場合のみ呼ばれる。質問が手順を明確に求めているか(A)、
+        提案・選択を求めているか(B)をGeminiに判定させる。
+        判定に失敗した場合は、実害の小さいB（選択肢を提示する側）にフォールバックする。
+        """
+        try:
+            result = self._generate_json(_INTENT_CLASSIFICATION_PROMPT.format(question=question))
+            intent = result.get("intent", "B")
+            return intent if intent in ("A", "B") else "B"
+        except Exception as e:
+            logger.warning(f"意図判定に失敗、Bにフォールバックします: {e}")
+            return "B"
+
     def assist(self, recipe_title: str, ingredients_text: str, question: str) -> str:
         prompt = f"レシピ「{recipe_title}」（材料: {ingredients_text}）について回答してください。\n質問: {question}"
         return self._generate_text(prompt)
@@ -130,12 +220,15 @@ class GeminiClient(LLMClient):
     def search_assist(self, question: str, retrieved: list[dict]) -> str:
         if not retrieved:
             return "登録レシピから関連するものが見つかりませんでした。"
-        context_parts = [f"【レシピ{i}: {hit['title']}】\n{hit['document']}" for i, hit in enumerate(retrieved, 1)]
-        context = "\n\n".join(context_parts)
-        prompt = (
-            "以下の登録レシピを参照して回答してください。\n"
-            "「レシピ1」「レシピ2」等の番号は参照用の内部ラベルであり、レシピ同士を区別するためだけのものです。"
-            "回答内でこの番号には言及せず、レシピ名（例:「肉じゃが」）で言及してください。\n\n"
-            f"【登録レシピ】\n{context}\n\n質問: {question}"
-        )
+
+        context = self._build_context(retrieved)
+
+        if self._is_single_clear_result(retrieved):
+            # 本命が明確な場合はシンプル版で即答（余計な注記による有用性の低下を防ぐ）
+            prompt = self._build_prompt_a(question, context)
+        else:
+            # 複数候補が拮抗している場合のみ、意図を判定してプロンプトを切り替える
+            intent = self._classify_intent(question)
+            prompt = self._build_prompt_a(question, context) if intent == "A" else self._build_prompt_b(question, context)
+
         return self._generate_text(prompt)

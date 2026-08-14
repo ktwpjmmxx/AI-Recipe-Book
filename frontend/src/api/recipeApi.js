@@ -83,7 +83,10 @@ export const forkRecipe = shareId =>
 export const discoverRecipes = (params = {}) => api.post('/ai/discover', params).then(r => r.data)
 export const generateRecipe = params => api.post('/ai/generate-recipe', params).then(r => r.data)
 export const suggestMenu = question => api.post('/ai/suggest-menu', { question }).then(r => r.data)
-export const searchAssist = question => api.post('/ai/search-assist', { question }).then(r => r.data)
+// search-assist はハイブリッドプロンプト切り替え(フェーズ3)により、
+// 複数候補が拮抗するケースで意図判定→回答生成の2回のGemini呼び出しが
+// 発生し得るため、デフォルトの30秒では不足する場合がある。60秒に延長する。
+export const searchAssist = question => api.post('/ai/search-assist', { question }, { timeout: 60000 }).then(r => r.data)
 
 // ── 買い物リスト ──────────────────────────────
 export const fetchShoppingLists = () => api.get('/shopping-lists').then(r => r.data)

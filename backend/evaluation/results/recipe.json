@@ -1,0 +1,155 @@
+[
+{
+"title": "バターチキンカレー",
+"category": "洋食",
+"description": "北インド発祥のまろやかなカレーで、トマトの酸味とバターやクリームのコクが溶け合う一皿。スパイスの香りが立ちながらも辛さは控えめなので、子供から大人まで楽しめる。ヨーグルトでマリネした鶏肉が驚くほど柔らかく仕上がるのも魅力。",
+"base_servings": 2.0,
+"prep_time": 30,
+"cook_time": 35,
+"ingredients": [
+{"name": "鶏もも肉", "amount": 300.0, "unit": "g", "amount_text": null},
+{"name": "プレーンヨーグルト", "amount": 100.0, "unit": "g", "amount_text": null},
+{"name": "おろしにんにく", "amount": 1.0, "unit": "小さじ", "amount_text": null},
+{"name": "おろし生姜", "amount": 1.0, "unit": "小さじ", "amount_text": null},
+{"name": "カレー粉", "amount": 2.0, "unit": "小さじ", "amount_text": null},
+{"name": "玉ねぎ", "amount": 1.0, "unit": "個", "amount_text": null},
+{"name": "トマト缶（カット）", "amount": 200.0, "unit": "g", "amount_text": null},
+{"name": "生クリーム", "amount": 100.0, "unit": "ml", "amount_text": null},
+{"name": "バター", "amount": 30.0, "unit": "g", "amount_text": null},
+{"name": "サラダ油", "amount": 1.0, "unit": "大さじ", "amount_text": null},
+{"name": "砂糖", "amount": 1.0, "unit": "小さじ", "amount_text": null},
+{"name": "塩", "amount": null, "unit": "", "amount_text": "小さじ1/2程度"},
+{"name": "ガラムマサラ", "amount": null, "unit": "", "amount_text": "小さじ1/2"},
+{"name": "パクチー", "amount": null, "unit": "", "amount_text": "お好みで少々"}
+],
+"steps": [
+{"order": 1, "description": "鶏もも肉を一口大に切り、ヨーグルト、おろしにんにく、おろし生姜、カレー粉小さじ1を混ぜたタレに漬け込み、冷蔵庫で最低30分置く。", "tip": "時間があれば一晩漬けると肉が驚くほど柔らかくなるため、前日の夜に仕込んでおくのがおすすめ。"},
+{"order": 2, "description": "玉ねぎをみじん切りにする。トマト缶は使う分だけ計量しておく。", "tip": "玉ねぎは繊維を断ち切るように刻むと火の通りが早くなる。"},
+{"order": 3, "description": "鍋にサラダ油を熱し、玉ねぎを中火できつね色になるまで10分ほどじっくり炒める。", "tip": "焦げそうになったら火を弱め、大さじ1程度の水を加えて炒めると焦げ付きを防げる。"},
+{"order": 4, "description": "玉ねぎがきつね色になったら残りのカレー粉小さじ1を加え、香りが立つまで1分ほど炒め合わせる。", "tip": null},
+{"order": 5, "description": "トマト缶を加え、木べらでつぶしながら中火で5分ほど煮詰めて水分を飛ばす。", "tip": "水分が多いとソースがぼやけるため、ふつふつと粘度が出るまでしっかり煮詰めるのがポイント。"},
+{"order": 6, "description": "漬け込んだ鶏肉をタレごと加え、蓋をして中火で10分ほど煮込む。", "tip": null},
+{"order": 7, "description": "鶏肉に火が通ったら砂糖と塩を加えて味を調え、生クリームとバターを加えて弱火で3分ほど煮る。", "tip": "沸騰させると生クリームが分離しやすいので、加えた後は弱火を保つこと。"},
+{"order": 8, "description": "火を止める直前にガラムマサラを加えてひと混ぜし、器に盛ってパクチーを添える。", "tip": "ガラムマサラは加熱しすぎると香りが飛ぶため、仕上げに加えるのがコツ。"}
+]
+},
+{
+"title": "グリーンカレー",
+"category": "アジアン",
+"description": "ココナッツミルクのコクとグリーンカレーペーストの辛味・香草の風味が織りなす、タイ料理の代表格。鶏肉となすを煮込むことで野菜にもスパイシーな旨みがしみ込み、ご飯が進む一皿になる。",
+"base_servings": 2.0,
+"prep_time": 15,
+"cook_time": 20,
+"ingredients": [
+{"name": "鶏もも肉", "amount": 250.0, "unit": "g", "amount_text": null},
+{"name": "グリーンカレーペースト", "amount": 2.0, "unit": "大さじ", "amount_text": null},
+{"name": "ココナッツミルク", "amount": 400.0, "unit": "ml", "amount_text": null},
+{"name": "なす", "amount": 1.0, "unit": "本", "amount_text": null},
+{"name": "赤パプリカ", "amount": 0.5, "unit": "個", "amount_text": null},
+{"name": "たけのこ水煮", "amount": 80.0, "unit": "g", "amount_text": null},
+{"name": "ナンプラー", "amount": 1.5, "unit": "大さじ", "amount_text": null},
+{"name": "砂糖", "amount": 1.0, "unit": "大さじ", "amount_text": null},
+{"name": "こぶみかんの葉", "amount": null, "unit": "", "amount_text": "3枚（あれば）"},
+{"name": "バジル", "amount": null, "unit": "", "amount_text": "ひとつかみ"},
+{"name": "赤唐辛子", "amount": null, "unit": "", "amount_text": "お好みで1本"},
+{"name": "サラダ油", "amount": 1.0, "unit": "大さじ", "amount_text": null}
+],
+"steps": [
+{"order": 1, "description": "鶏もも肉を一口大に切る。なすは乱切り、パプリカは細切りにし、たけのこは食べやすい大きさに切る。", "tip": "なすは切ったら水にさらすと変色を防げる。"},
+{"order": 2, "description": "鍋にサラダ油を熱し、グリーンカレーペーストを中火で1分ほど炒めて香りを立たせる。", "tip": "ペーストは焦げやすいので弱めの中火でこまめに混ぜながら炒めること。"},
+{"order": 3, "description": "ココナッツミルクの半量を加え、分離しないように混ぜながら中火で2分ほど煮る。", "tip": "ココナッツミルクは使う前によく振ってから開けると油分と液体が均一に混ざりやすい。"},
+{"order": 4, "description": "鶏肉を加えて表面の色が変わるまで炒め煮にする。", "tip": null},
+{"order": 5, "description": "残りのココナッツミルク、なす、パプリカ、たけのこ、こぶみかんの葉を加え、中火で8分ほど煮込む。", "tip": "なすが柔らかくなればほぼ完成の合図なので、味見をしながら煮込み時間を調整する。"},
+{"order": 6, "description": "ナンプラーと砂糖を加えて味を調え、さらに2分ほど煮る。", "tip": "ナンプラーは風味が強いので味を見ながら少しずつ加えると失敗しにくい。"},
+{"order": 7, "description": "火を止める直前にバジルと輪切りにした赤唐辛子を加えてさっと混ぜる。", "tip": "バジルは煮込みすぎると香りが飛ぶため、仕上げに加えるのがコツ。"},
+{"order": 8, "description": "器にご飯とともに盛り付け、お好みでバジルを飾る。", "tip": null}
+]
+},
+{
+"title": "味噌汁",
+"category": "和食",
+"description": "だしの旨みと味噌の香りが体に染み渡る、日本の食卓に欠かせない一杯。具材を変えるだけで四季を通じて楽しめ、忙しい朝でも短時間で作れる手軽さも魅力。",
+"base_servings": 2.0,
+"prep_time": 10,
+"cook_time": 10,
+"ingredients": [
+{"name": "水", "amount": 400.0, "unit": "ml", "amount_text": null},
+{"name": "煮干し", "amount": 6.0, "unit": "本", "amount_text": null},
+{"name": "昆布", "amount": 5.0, "unit": "cm", "amount_text": null},
+{"name": "絹ごし豆腐", "amount": 100.0, "unit": "g", "amount_text": null},
+{"name": "わかめ（乾燥）", "amount": 2.0, "unit": "g", "amount_text": null},
+{"name": "長ねぎ", "amount": 0.5, "unit": "本", "amount_text": null},
+{"name": "味噌", "amount": 2.0, "unit": "大さじ", "amount_text": null}
+],
+"steps": [
+{"order": 1, "description": "煮干しは頭とはらわたを取り除き、水と昆布とともに鍋に入れて30分ほど置いてだしの下準備をする。", "tip": "時間がない場合は煮干しをそのまま使ってもよいが、頭とはらわたを取ると臭みが少なくなる。"},
+{"order": 2, "description": "鍋を中火にかけ、沸騰直前で昆布を取り出す。", "tip": "昆布を煮立たせるとぬめりや苦味が出るので、沸騰前に取り出すのがポイント。"},
+{"order": 3, "description": "そのまま中火で3分ほど煮出し、煮干しをこしてだしを取る。", "tip": null},
+{"order": 4, "description": "豆腐をさいの目に切り、長ねぎは小口切りにする。", "tip": null},
+{"order": 5, "description": "だしを再び火にかけ、豆腐と乾燥わかめを加えて中火で2分ほど温める。", "tip": "わかめは戻すと数倍に膨らむので、入れすぎないよう分量に注意する。"},
+{"order": 6, "description": "煮立つ直前で火を弱め、味噌を溶き入れる。", "tip": "味噌は沸騰させると香りが飛んでしまうため、溶き入れた後は煮立たせないこと。"},
+{"order": 7, "description": "器に盛り、長ねぎを散らして完成させる。", "tip": null}
+]
+},
+{
+"title": "コーンスープ",
+"category": "洋食",
+"description": "とうもろこしの自然な甘みとミルクのまろやかさが優しく広がるポタージュ。裏ごしすることでなめらかな口当たりに仕上がり、前菜としても朝食のお供にもぴったりの一品。",
+"base_servings": 2.0,
+"prep_time": 10,
+"cook_time": 20,
+"ingredients": [
+{"name": "コーン缶（クリームタイプ）", "amount": 200.0, "unit": "g", "amount_text": null},
+{"name": "玉ねぎ", "amount": 0.5, "unit": "個", "amount_text": null},
+{"name": "バター", "amount": 10.0, "unit": "g", "amount_text": null},
+{"name": "牛乳", "amount": 200.0, "unit": "ml", "amount_text": null},
+{"name": "水", "amount": 100.0, "unit": "ml", "amount_text": null},
+{"name": "コンソメ顆粒", "amount": 1.0, "unit": "小さじ", "amount_text": null},
+{"name": "生クリーム", "amount": 30.0, "unit": "ml", "amount_text": null},
+{"name": "塩", "amount": null, "unit": "", "amount_text": "少々"},
+{"name": "こしょう", "amount": null, "unit": "", "amount_text": "少々"},
+{"name": "パセリ", "amount": null, "unit": "", "amount_text": "お好みで少々"}
+],
+"steps": [
+{"order": 1, "description": "玉ねぎをみじん切りにする。", "tip": null},
+{"order": 2, "description": "鍋にバターを入れ中火で熱し、玉ねぎが透き通るまで3分ほど炒める。", "tip": "焦げやすいので弱めの中火でじっくり炒めると甘みが引き出せる。"},
+{"order": 3, "description": "水とコンソメ顆粒を加え、玉ねぎが柔らかくなるまで中火で5分ほど煮る。", "tip": null},
+{"order": 4, "description": "クリームコーン缶を加えて混ぜ、中火で2分ほど温める。", "tip": null},
+{"order": 5, "description": "粗熱を取ってからミキサーまたはハンドブレンダーでなめらかになるまで撹拌する。", "tip": "熱いまま高速で撹拌すると蒸気で蓋が飛ぶことがあるため、少し冷ましてから作業すること。"},
+{"order": 6, "description": "撹拌したスープを鍋に戻し、牛乳を加えて中火で温める。", "tip": "牛乳を加えたら沸騰させないよう弱めの中火で見守るとなめらかさが保てる。"},
+{"order": 7, "description": "生クリームを加えてひと煮立ちさせ、塩とこしょうで味を調える。", "tip": null},
+{"order": 8, "description": "器に盛り、お好みでパセリを散らして完成させる。", "tip": "なめらかさを重視するなら仕上げにこし器で一度こすとさらに口当たりが良くなる。"}
+]
+},
+{
+"title": "ティラミス",
+"category": "その他",
+"description": "コーヒーの苦みとマスカルポーネのなめらかな甘さが層になったイタリア発祥のデザート。混ぜて冷やすだけの簡単な工程ながら、見た目も華やかで特別な日のデザートにもふさわしい一品。",
+"base_servings": 2.0,
+"prep_time": 25,
+"cook_time": 0,
+"ingredients": [
+{"name": "マスカルポーネチーズ", "amount": 125.0, "unit": "g", "amount_text": null},
+{"name": "卵黄", "amount": 1.0, "unit": "個", "amount_text": null},
+{"name": "卵白", "amount": 1.0, "unit": "個", "amount_text": null},
+{"name": "グラニュー糖", "amount": 30.0, "unit": "g", "amount_text": null},
+{"name": "生クリーム", "amount": 50.0, "unit": "ml", "amount_text": null},
+{"name": "インスタントコーヒー", "amount": 1.0, "unit": "大さじ", "amount_text": null},
+{"name": "お湯", "amount": 100.0, "unit": "ml", "amount_text": null},
+{"name": "ラム酒", "amount": null, "unit": "", "amount_text": "お好みで小さじ1"},
+{"name": "フィンガービスケット", "amount": 8.0, "unit": "本", "amount_text": null},
+{"name": "ココアパウダー", "amount": null, "unit": "", "amount_text": "仕上げ用に適量"}
+],
+"steps": [
+{"order": 1, "description": "インスタントコーヒーをお湯で溶き、ラム酒を加えて混ぜ、粗熱を取ってコーヒー液を作っておく。", "tip": null},
+{"order": 2, "description": "ボウルに卵黄とグラニュー糖の半量を入れ、白っぽくもったりするまで泡立て器でよく混ぜる。", "tip": "しっかり泡立てることで卵の生臭さが抑えられ、口当たりも滑らかになる。"},
+{"order": 3, "description": "別のボウルでマスカルポーネチーズを練り、卵黄のボウルに加えてなめらかになるまで混ぜ合わせる。", "tip": "マスカルポーネは冷たいままだと混ざりにくいので、常温に戻しておくと作業がしやすい。"},
+{"order": 4, "description": "別のボウルで生クリームを八分立てにし、マスカルポーネのボウルにさっくりと混ぜ合わせる。", "tip": "混ぜすぎると生クリームの軽さが失われるため、ゴムベラで底からすくうように手早く合わせること。"},
+{"order": 5, "description": "別のボウルで卵白を残りのグラニュー糖とともに角が立つまで泡立ててメレンゲを作り、生地にさっくりと合わせる。", "tip": "メレンゲを加える際は泡をつぶさないよう少量ずつ加えて混ぜるのがコツ。"},
+{"order": 6, "description": "フィンガービスケットをコーヒー液にさっとくぐらせ、容器の底に並べる。", "tip": "長く浸すとビスケットが崩れるので、片面1秒程度でさっと引き上げること。"},
+{"order": 7, "description": "ビスケットの上にクリームの半量を広げ、再度ビスケットを並べて残りのクリームを重ねる。", "tip": null},
+{"order": 8, "description": "表面をならしてラップをかけ、冷蔵庫で最低3時間、できれば一晩冷やし固める。", "tip": "冷やす時間が短いと層が崩れやすいため、できるだけ時間をおくと綺麗に切り分けられる。"},
+{"order": 9, "description": "食べる直前に茶こしを使ってココアパウダーを表面に振りかけて完成させる。", "tip": "ココアは食べる直前にかけないと湿気を吸って見た目が損なわれるので注意する。"}
+]
+}
+]
